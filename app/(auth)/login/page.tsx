@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { useAuth } from "@/lib/auth-context"
 import { authApi } from "@/lib/api-client"
 import { toast } from "react-hot-toast"
-import { Loader2, Shield, Sparkles } from "lucide-react"
+import { Loader2, Shield, Sparkles, Eye, EyeOff } from "lucide-react"
 import { setupNotifications } from "@/lib/fcm-helper"
 
 const loginSchema = z.object({
@@ -26,6 +26,7 @@ export default function LoginPage() {
   const router = useRouter()
   const { login } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -151,14 +152,30 @@ export default function LoginPage() {
                 <Label htmlFor="password" className="text-xs sm:text-sm font-semibold">
                   Mot de passe
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("password")}
-                  disabled={isLoading}
-                  className="h-11 sm:h-12 text-sm sm:text-base bg-background/50 border-primary/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("password")}
+                    disabled={isLoading}
+                    className="h-11 sm:h-12 text-sm sm:text-base bg-background/50 border-primary/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
                 {errors.password && <p className="text-xs sm:text-sm text-destructive">{errors.password.message}</p>}
               </div>
 
@@ -175,7 +192,7 @@ export default function LoginPage() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                    {/* <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> */}
                     Se connecter
                   </>
                 )}

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authApi } from "@/lib/api-client"
 import { toast } from "react-hot-toast"
-import { Loader2, Sparkles, UserPlus, CheckCircle } from "lucide-react"
+import { Loader2, Sparkles, UserPlus, CheckCircle, Eye, EyeOff } from "lucide-react"
 
 const signupSchema = z
   .object({
@@ -32,6 +32,8 @@ type SignupFormData = z.infer<typeof signupSchema>
 export default function SignupPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showRePassword, setShowRePassword] = useState(false)
 
   const {
     register,
@@ -165,27 +167,59 @@ export default function SignupPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-xs sm:text-sm font-semibold">Mot de passe</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("password")}
-                  disabled={isLoading}
-                  className="h-11 sm:h-12 text-sm sm:text-base bg-background/50 border-primary/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("password")}
+                    disabled={isLoading}
+                    className="h-11 sm:h-12 text-sm sm:text-base bg-background/50 border-primary/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
                 {errors.password && <p className="text-xs sm:text-sm text-destructive">{errors.password.message}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="re_password" className="text-xs sm:text-sm font-semibold">Confirmer le mot de passe</Label>
-                <Input
-                  id="re_password"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("re_password")}
-                  disabled={isLoading}
-                  className="h-11 sm:h-12 text-sm sm:text-base bg-background/50 border-primary/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
+                <div className="relative">
+                  <Input
+                    id="re_password"
+                    type={showRePassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("re_password")}
+                    disabled={isLoading}
+                    className="h-11 sm:h-12 text-sm sm:text-base bg-background/50 border-primary/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowRePassword(!showRePassword)}
+                    tabIndex={-1}
+                  >
+                    {showRePassword ? (
+                      <EyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
                 {errors.re_password && <p className="text-xs sm:text-sm text-destructive">{errors.re_password.message}</p>}
               </div>
 
@@ -202,7 +236,7 @@ export default function SignupPage() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                    {/* <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> */}
                     Créer mon compte
                   </>
                 )}
