@@ -4,13 +4,13 @@ importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging-comp
 
 // Firebase configuration - REPLACE WITH YOUR CONFIG
 const firebaseConfig = {
-  apiKey: "AIzaSyDj4CbDhlN_dxQ1exeCtPTgSZZfN8IAddM",
-  authDomain: "turaincash-57c48.firebaseapp.com",
-  projectId: "turaincash-57c48",
-  storageBucket: "turaincash-57c48.firebasestorage.app",
-  messagingSenderId: "665076337085",
-  appId: "1:665076337085:web:850ace1ccae6ff90292ad4",
-  measurementId: "G-SWVTK18YGF"
+  apiKey: "AIzaSyDkkEeWXUZd2oUnQp82MlkosahPSfkCY8o",
+  authDomain: "zefast-9b2d4.firebaseapp.com",
+  projectId: "zefast-9b2d4",
+  storageBucket: "zefast-9b2d4.firebasestorage.app",
+  messagingSenderId: "571907882935",
+  appId: "1:571907882935:web:6c5f48a239be77465af232",
+  measurementId: "G-JT8SDZVGT5"
 };
 
 // Initialize Firebase
