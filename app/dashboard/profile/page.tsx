@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Edit, Save, X, Loader2, Eye, EyeOff } from "lucide-react"
 import { toast } from "react-hot-toast"
+import { normalizePhoneNumber } from "@/lib/utils"
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -86,7 +87,7 @@ export default function ProfilePage() {
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
-        phone: formData.phone,
+        phone: normalizePhoneNumber(formData.phone),
       }
 
       // Only include password if it's being changed

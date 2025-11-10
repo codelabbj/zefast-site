@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { authApi } from "@/lib/api-client"
 import { toast } from "react-hot-toast"
 import { Loader2, UserPlus, CheckCircle, Eye, EyeOff } from "lucide-react"
+import { normalizePhoneNumber } from "@/lib/utils"
 
 const signupSchema = z
   .object({
@@ -46,7 +47,10 @@ export default function SignupPage() {
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true)
     try {
-      await authApi.register(data)
+      await authApi.register({
+        ...data,
+        phone: normalizePhoneNumber(data.phone),
+      })
       toast.success("Compte créé avec succès! Veuillez vous connecter.")
       router.push("/login")
     } catch (error) {

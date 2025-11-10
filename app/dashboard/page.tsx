@@ -184,6 +184,21 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Advertisement section */}
+      <div className="space-y-4 sm:space-y-6">
+        <Card className="border-2 overflow-hidden hover:shadow-lg transition-shadow duration-300">
+          <CardContent className="p-0">
+            <div className="relative w-full aspect-[3/1] bg-muted">
+              <img
+                src="/placeholder.jpg"
+                alt="Advertisement"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Recent activity */}
       <div className="space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">

@@ -16,6 +16,7 @@ import { AmountStep } from "@/components/transaction/steps/amount-step"
 import { transactionApi } from "@/lib/api-client"
 import type { Platform, UserAppId, Network, UserPhone } from "@/lib/types"
 import { toast } from "react-hot-toast"
+import { normalizePhoneNumber } from "@/lib/utils"
 
 export default function DepositPage() {
   const router = useRouter()
@@ -66,7 +67,7 @@ export default function DepositPage() {
     try {
       await transactionApi.createDeposit({
         amount,
-        phone_number: selectedPhone.phone,
+        phone_number: normalizePhoneNumber(selectedPhone.phone),
         app: selectedPlatform.id,
         user_app_id: selectedBetId.user_app_id,
         network: selectedNetwork.id,

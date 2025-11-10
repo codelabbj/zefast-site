@@ -24,6 +24,7 @@ import { phoneApi, userAppIdApi, networkApi, platformApi } from "@/lib/api-clien
 import type { UserPhone, UserAppId, Network, Platform } from "@/lib/types"
 import { toast } from "react-hot-toast"
 import { Loader2, Phone, Plus, Trash2, Edit, Smartphone, ArrowLeft } from "lucide-react"
+import { normalizePhoneNumber } from "@/lib/utils"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -117,11 +118,12 @@ export default function PhonesPage() {
   const handlePhoneSubmit = async (data: PhoneFormData) => {
     setIsSubmitting(true)
     try {
+      const normalizedPhone = normalizePhoneNumber(data.phone)
       if (editingPhone) {
-        await phoneApi.update(editingPhone.id, data.phone, data.network)
+        await phoneApi.update(editingPhone.id, normalizedPhone, data.network)
         toast.success("Numéro modifié avec succès!")
       } else {
-        await phoneApi.create(data.phone, data.network)
+        await phoneApi.create(normalizedPhone, data.network)
         toast.success("Numéro ajouté avec succès!")
       }
       setIsPhoneDialogOpen(false)

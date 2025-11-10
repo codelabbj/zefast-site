@@ -16,6 +16,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react"
 import { setupNotifications } from "@/lib/fcm-helper"
 import Image from "next/image";
 import logo from "@/public/logo.png"
+import { normalizePhoneNumber } from "@/lib/utils"
 
 const loginSchema = z.object({
   email_or_phone: z.string().min(1, "Email ou téléphone requis"),
@@ -42,7 +43,11 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       // Step 1: Authenticate user
-      const response = await authApi.login(data.email_or_phone, data.password)
+      // Normalize phone number if it looks like a phone (contains + or starts with digits)
+      const emailOrPhone = data.email_or_phone.includes('@') 
+        ? data.email_or_phone 
+        : normalizePhoneNumber(data.email_or_phone)
+      const response = await authApi.login(emailOrPhone, data.password)
       login(response.access, response.refresh, response.data)
       
       // Step 2: Show success toast first
@@ -123,8 +128,9 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-6 xl:p-8 bg-gradient-to-br from-background via-background to-primary/5 min-h-screen lg:min-h-0 w-full">
         <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl">
           <div className="mb-6 sm:mb-8 text-center lg:text-left">
-            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-primary to-accent mb-3 sm:mb-4 lg:hidden">
+            <div className="inline-flex items-center justify-center w-20 h-20 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-primary to-accent mb-3 sm:mb-4 lg:hidden">
               {/* <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" /> */}
+              <Image src={logo} alt="logo" className="w-20 h-20 rounded-lg border-white/20 mb-6" />
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Connexion

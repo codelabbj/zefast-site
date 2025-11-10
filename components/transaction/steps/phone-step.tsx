@@ -10,6 +10,7 @@ import { Loader2, Plus, Edit, Trash2 } from "lucide-react"
 import { phoneApi } from "@/lib/api-client"
 import type { UserPhone, Network } from "@/lib/types"
 import { toast } from "react-hot-toast"
+import { normalizePhoneNumber } from "@/lib/utils"
 
 interface PhoneStepProps {
   selectedNetwork: Network | null
@@ -54,7 +55,8 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect, onNext }: 
     
     setIsSubmitting(true)
     try {
-      const newPhoneData = await phoneApi.create(newPhone.trim(), selectedNetwork.id)
+      const normalizedPhone = normalizePhoneNumber(newPhone.trim())
+      const newPhoneData = await phoneApi.create(normalizedPhone, selectedNetwork.id)
       setPhones(prev => [...prev, newPhoneData])
       setNewPhone("")
       setIsAddDialogOpen(false)
@@ -71,9 +73,10 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect, onNext }: 
     
     setIsSubmitting(true)
     try {
+      const normalizedPhone = normalizePhoneNumber(newPhone.trim())
       const updatedPhone = await phoneApi.update(
         editingPhone.id,
-        newPhone.trim(),
+        normalizedPhone,
         selectedNetwork.id
       )
       setPhones(prev => prev.map(phone => 

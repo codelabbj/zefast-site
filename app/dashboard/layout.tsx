@@ -60,7 +60,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center gap-4">
               <Link href="/dashboard" className="group">
                   <div className="flex items-center group-hover:scale-105 transition-transform ">
-                      <Image src={logo} alt="logo" className="rounded-lg h-15 w-auto"/>
+                      <Image src="/Zefast-logo.png" width={100} height={100} alt="logo" className="rounded-lg h-20 w-auto"/>
                       <h1 className="text-2xl font-bold gradient-text">ZEFAST</h1>
                   </div>
 
@@ -72,8 +72,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <ThemeToggle />
               <Button
                 variant="ghost"
-                size="icon"
-                className="rounded-xl relative"
+                className="h-12 w-12 rounded-xl relative"
                 asChild
               >
                 <Link href="/notifications">
@@ -88,7 +87,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 glass" align="end" forceMount>
+              <DropdownMenuContent className="w-48 sm:w-56 glass" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
