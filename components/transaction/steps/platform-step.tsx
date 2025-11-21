@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SafeImage } from "@/components/ui/safe-image"
-import { Loader2, Plus } from "lucide-react"
+import { Loader2} from "lucide-react"
 import { platformApi } from "@/lib/api-client"
 import type { Platform } from "@/lib/types"
 import { toast } from "react-hot-toast"
@@ -16,7 +15,7 @@ interface PlatformStepProps {
   onNext: () => void
 }
 
-export function PlatformStep({ selectedPlatform, onSelect, onNext }: PlatformStepProps) {
+export function PlatformStep({ selectedPlatform, onSelect}: PlatformStepProps) {
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const [isLoading, setIsLoading] = useState(true)
 

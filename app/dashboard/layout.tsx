@@ -17,7 +17,6 @@ import {
 import { LogOut, User, Loader2, Bell, Ticket } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import Image from "next/image";
-import logo from "@/public/logo.png"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
