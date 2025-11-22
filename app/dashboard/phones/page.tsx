@@ -24,7 +24,6 @@ import { phoneApi, userAppIdApi, networkApi, platformApi } from "@/lib/api-clien
 import type { UserPhone, UserAppId, Network, Platform } from "@/lib/types"
 import { toast } from "react-hot-toast"
 import { Loader2, Phone, Plus, Trash2, Edit, Smartphone, ArrowLeft } from "lucide-react"
-import { normalizePhoneNumber } from "@/lib/utils"
 import {
   AlertDialog,
   AlertDialogAction,

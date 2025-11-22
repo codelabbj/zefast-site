@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -88,9 +88,6 @@ export function AmountStep({
       </Card>
     )
   }
-
-  const minAmount = type === "deposit" ? selectedPlatform.minimun_deposit : selectedPlatform.minimun_with
-  const maxAmount = type === "deposit" ? selectedPlatform.max_deposit : selectedPlatform.max_win
 
   return (
     <div className="space-y-6">
