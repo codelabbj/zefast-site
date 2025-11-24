@@ -65,6 +65,20 @@ export const authApi = {
     const { data } = await api.post("/auth/change_password", passwordData)
     return data
   },
+
+    requestOtp: async (email: string) => {
+        const { data } = await api.post("/auth/send_otp", { email })
+        return data
+    },
+
+    resetPassword: async (otp:string, new_password : string, confirm_new_password:string) => {
+        const { data } = await api.post("/auth/reset_password", {
+            otp,
+            new_password,
+            confirm_new_password
+        })
+        return data
+    },
 }
 
 export const networkApi = {
