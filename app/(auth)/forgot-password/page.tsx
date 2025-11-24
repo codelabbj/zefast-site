@@ -318,7 +318,7 @@ export default function ForgotPasswordPage() {
                     {...otpForm.register("otp")}
                     disabled={isLoading}
                     maxLength={6}
-                    className="h-11 sm:h-12 text-sm sm:text-base bg-background/50 border-primary/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all tracking-widest text-center text-lg font-semibold"
+                    className="h-11 sm:h-12 text-sm sm:text-base bg-background/50 border-primary/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all tracking-widest text-center font-semibold"
                   />
                   {otpForm.formState.errors.otp && (
                     <p className="text-xs sm:text-sm text-destructive">{otpForm.formState.errors.otp.message}</p>

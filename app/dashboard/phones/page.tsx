@@ -162,27 +162,6 @@ export default function PhonesPage() {
       }
   }
 
-  const handleAppIdSubmit = async (data: AppIdFormData) => {
-    setIsSubmitting(true)
-    try {
-      if (editingAppId) {
-        await userAppIdApi.update(editingAppId.id, data.user_app_id, data.app)
-        toast.success("ID de pari modifié avec succès!")
-      } else {
-        await userAppIdApi.create(data.user_app_id, data.app)
-        toast.success("ID de pari ajouté avec succès!")
-      }
-      setIsAppIdDialogOpen(false)
-      appIdForm.reset()
-      setEditingAppId(null)
-      loadData()
-    } catch (error) {
-      console.error("App ID operation error:", error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   const handleDelete = async () => {
     if (!deleteTarget) return
 
