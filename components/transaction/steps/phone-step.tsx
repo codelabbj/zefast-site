@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,7 +10,14 @@ import { Loader2, Plus, Edit, Trash2 } from "lucide-react"
 import { phoneApi } from "@/lib/api-client"
 import type { UserPhone, Network } from "@/lib/types"
 import { toast } from "react-hot-toast"
-import { normalizePhoneNumber } from "@/lib/utils"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+
+const COUNTRIES = [
+    { code: "225", name: "Côte d'Ivoire" },
+    { code: "229", name: "Bénin" },
+    { code: "221", name: "Sénégal" },
+    { code: "226", name: "Burkina Faso" },
+]
 
 interface PhoneStepProps {
   selectedNetwork: Network | null
@@ -19,7 +26,7 @@ interface PhoneStepProps {
   onNext: () => void
 }
 
-export function PhoneStep({ selectedNetwork, selectedPhone, onSelect, onNext }: PhoneStepProps) {
+export function PhoneStep({ selectedNetwork, selectedPhone, onSelect }: PhoneStepProps) {
   const [phones, setPhones] = useState<UserPhone[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -27,6 +34,8 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect, onNext }: 
   const [editingPhone, setEditingPhone] = useState<UserPhone | null>(null)
   const [newPhone, setNewPhone] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+    const [selectedCountry, setSelectedCountry] = useState<string>("225")
+    const [selectedEditCountry, setSelectedEditCountry] = useState<string>("225")
 
   useEffect(() => {
     if (selectedNetwork) {
@@ -51,46 +60,64 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect, onNext }: 
   }
 
   const handleAddPhone = async () => {
-    if (!newPhone.trim() || !selectedNetwork) return
-    
-    setIsSubmitting(true)
-    try {
-      const normalizedPhone = normalizePhoneNumber(newPhone.trim())
-      const newPhoneData = await phoneApi.create(normalizedPhone, selectedNetwork.id)
-      setPhones(prev => [...prev, newPhoneData])
-      setNewPhone("")
-      setIsAddDialogOpen(false)
-      toast.success("Numéro de téléphone ajouté avec succès")
-    } catch (error) {
-      toast.error("Erreur lors de l'ajout du numéro de téléphone")
-    } finally {
-      setIsSubmitting(false)
-    }
+      if (!newPhone.trim() || !selectedNetwork) return
+
+      // Validate and clean phone number
+      const cleanedPhone = newPhone.trim().replace(/\s+/g, "")
+
+      // Check if phone number contains only digits
+      if (!/^\d+$/.test(cleanedPhone)) {
+          toast.error("Veuillez entrer uniquement des chiffres")
+          return
+      }
+
+      setIsSubmitting(true)
+      try {
+          const phone = selectedCountry + cleanedPhone
+          const newPhoneData = await phoneApi.create(phone, selectedNetwork.id)
+          setPhones(prev => [...prev, newPhoneData])
+          setNewPhone("")
+          setIsAddDialogOpen(false)
+          toast.success("Numéro de téléphone ajouté avec succès")
+      } catch (error) {
+          toast.error("Erreur lors de l'ajout du numéro de téléphone")
+      } finally {
+          setIsSubmitting(false)
+      }
   }
 
   const handleEditPhone = async () => {
-    if (!newPhone.trim() || !editingPhone || !selectedNetwork) return
-    
-    setIsSubmitting(true)
-    try {
-      const normalizedPhone = normalizePhoneNumber(newPhone.trim())
-      const updatedPhone = await phoneApi.update(
-        editingPhone.id,
-        normalizedPhone,
-        selectedNetwork.id
-      )
-      setPhones(prev => prev.map(phone => 
-        phone.id === editingPhone.id ? updatedPhone : phone
-      ))
-      setNewPhone("")
-      setEditingPhone(null)
-      setIsEditDialogOpen(false)
-      toast.success("Numéro de téléphone modifié avec succès")
-    } catch (error) {
-      toast.error("Erreur lors de la modification du numéro de téléphone")
-    } finally {
-      setIsSubmitting(false)
-    }
+      if (!newPhone.trim() || !editingPhone || !selectedNetwork) return
+
+      // Validate and clean phone number
+      const cleanedPhone = newPhone.trim().replace(/\s+/g, "")
+
+      // Check if phone number contains only digits
+      if (!/^\d+$/.test(cleanedPhone)) {
+          toast.error("Veuillez entrer uniquement des chiffres")
+          return
+      }
+
+      setIsSubmitting(true)
+      try {
+          const phone = selectedEditCountry + cleanedPhone
+          const updatedPhone = await phoneApi.update(
+              editingPhone.id,
+              phone,
+              selectedNetwork.id
+          )
+          setPhones(prev => prev.map(phone =>
+              phone.id === editingPhone.id ? updatedPhone : phone
+          ))
+          setNewPhone("")
+          setEditingPhone(null)
+          setIsEditDialogOpen(false)
+          toast.success("Numéro de téléphone modifié avec succès")
+      } catch (error) {
+          toast.error("Erreur lors de la modification du numéro de téléphone")
+      } finally {
+          setIsSubmitting(false)
+      }
   }
 
   const handleDeletePhone = async (phone: UserPhone) => {
@@ -150,7 +177,7 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect, onNext }: 
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold">{phone.phone}</h3>
+                        <h3 className="font-semibold">+{phone.phone.slice(0,3)} {phone.phone.slice(3)}</h3>
                         <p className="text-sm text-muted-foreground">
                           Ajouté le {new Date(phone.created_at).toLocaleDateString("fr-FR")}
                         </p>
@@ -217,13 +244,28 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect, onNext }: 
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+              <div>
+                  <Label htmlFor="country">Pays</Label>
+                  <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                      <SelectTrigger id="country">
+                          <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                          {COUNTRIES.map((country) => (
+                              <SelectItem key={country.code} value={country.code}>
+                                  {country.name}
+                              </SelectItem>
+                          ))}
+                      </SelectContent>
+                  </Select>
+              </div>
             <div>
               <Label htmlFor="phone">Numéro de téléphone</Label>
               <Input
                 id="phone"
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
-                placeholder="Ex: +225 07 12 34 56 78"
+                placeholder="Ex: 0712345678"
               />
             </div>
           </div>
@@ -255,13 +297,28 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect, onNext }: 
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+              <div>
+                  <Label htmlFor="editCountry">Pays</Label>
+                  <Select value={selectedEditCountry} onValueChange={setSelectedEditCountry}>
+                      <SelectTrigger id="editCountry">
+                          <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                          {COUNTRIES.map((country) => (
+                              <SelectItem key={country.code} value={country.code}>
+                                  {country.name}
+                              </SelectItem>
+                          ))}
+                      </SelectContent>
+                  </Select>
+              </div>
             <div>
               <Label htmlFor="editPhone">Numéro de téléphone</Label>
               <Input
                 id="editPhone"
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
-                placeholder="Ex: +225 07 12 34 56 78"
+                placeholder="Ex: 0712345678"
               />
             </div>
           </div>

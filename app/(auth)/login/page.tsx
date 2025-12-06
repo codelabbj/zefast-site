@@ -184,6 +184,9 @@ export default function LoginPage() {
                   </Button>
                 </div>
                 {errors.password && <p className="text-xs sm:text-sm text-destructive">{errors.password.message}</p>}
+                  <Link href="/forgot-password" className="text-primary hover:underline font-semibold">
+                      Mot de passe oublié ?
+                  </Link>
               </div>
 
               <Button 

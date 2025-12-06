@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SafeImage } from "@/components/ui/safe-image"
-import { Loader2, Plus } from "lucide-react"
+import { Loader2} from "lucide-react"
 import { platformApi } from "@/lib/api-client"
 import type { Platform } from "@/lib/types"
 import { toast } from "react-hot-toast"
@@ -16,7 +15,7 @@ interface PlatformStepProps {
   onNext: () => void
 }
 
-export function PlatformStep({ selectedPlatform, onSelect, onNext }: PlatformStepProps) {
+export function PlatformStep({ selectedPlatform, onSelect}: PlatformStepProps) {
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -74,7 +73,7 @@ export function PlatformStep({ selectedPlatform, onSelect, onNext }: PlatformSte
                   />
                   <div className="flex-1 min-w-0 w-full">
                     <h3 className="font-semibold text-sm sm:text-base truncate">{platform.name}</h3>
-                    <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 mt-1.5 sm:mt-1">
+                    <div className="flex flex-col gap-1 sm:gap-2 mt-1.5 sm:mt-1">
                       <Badge variant="outline" className="text-[10px] sm:text-xs w-fit">
                         Min: {platform.minimun_deposit.toLocaleString()} FCFA
                       </Badge>

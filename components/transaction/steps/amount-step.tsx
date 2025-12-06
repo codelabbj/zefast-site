@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -89,9 +89,6 @@ export function AmountStep({
     )
   }
 
-  const minAmount = type === "deposit" ? selectedPlatform.minimun_deposit : selectedPlatform.minimun_with
-  const maxAmount = type === "deposit" ? selectedPlatform.max_deposit : selectedPlatform.max_win
-
   return (
     <div className="space-y-6">
       {/* Transaction Summary */}
@@ -130,6 +127,25 @@ export function AmountStep({
           </div>
         </CardContent>
       </Card>
+
+        {/* Network Message */}
+        {selectedNetwork && (() => {
+            const message = type === "deposit"
+                ? selectedNetwork.deposit_message
+                : selectedNetwork.withdrawal_message
+
+            if (!message || message.trim() === "") return null
+
+            return (
+                <Card className="overflow-hidden border-primary/20 bg-primary/5">
+                    <CardContent className="p-4 sm:p-6">
+                        <p className="text-sm sm:text-base text-foreground whitespace-pre-wrap break-words">
+                            {message}
+                        </p>
+                    </CardContent>
+                </Card>
+            )
+        })()}
 
       {/* Amount Input */}
       <Card>

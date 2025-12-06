@@ -17,14 +17,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { phoneApi, userAppIdApi, networkApi, platformApi } from "@/lib/api-client"
 import type { UserPhone, UserAppId, Network, Platform } from "@/lib/types"
 import { toast } from "react-hot-toast"
-import { Loader2, Phone, Plus, Trash2, Edit, Smartphone, ArrowLeft } from "lucide-react"
-import { normalizePhoneNumber } from "@/lib/utils"
+import { Loader2, Phone, Plus, Trash2, Edit, Smartphone, ArrowLeft, CheckCircle, XCircle } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,8 +37,16 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+const COUNTRIES = [
+    { code: "225", name: "Côte d'Ivoire" },
+    { code: "229", name: "Bénin" },
+    { code: "221", name: "Sénégal" },
+    { code: "226", name: "Burkina Faso" },
+]
+
 const phoneSchema = z.object({
-  phone: z.string().min(8, "Numéro de téléphone invalide"),
+    country: z.string().min(1, "Pays requis"),
+    phone: z.string().min(8, "Numéro de téléphone invalide"),
   network: z.number().min(1, "Réseau requis"),
 })
 
@@ -64,6 +72,20 @@ export default function PhonesPage() {
   const [editingAppId, setEditingAppId] = useState<UserAppId | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ type: "phone" | "appId"; id: number } | null>(null)
 
+  // Search functionality states for add
+  const [isSearching, setIsSearching] = useState(false)
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false)
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [pendingBetId, setPendingBetId] = useState<{ appId: string; betId: string; userName: string } | null>(null)
+
+  // Search functionality states for edit
+  const [isEditSearching, setIsEditSearching] = useState(false)
+  const [isEditConfirmationModalOpen, setIsEditConfirmationModalOpen] = useState(false)
+  const [isEditErrorModalOpen, setIsEditErrorModalOpen] = useState(false)
+  const [editErrorMessage, setEditErrorMessage] = useState("")
+  const [pendingEditBetId, setPendingEditBetId] = useState<{ id: number; appId: string; betId: string; userName: string } | null>(null)
+
   const phoneForm = useForm<PhoneFormData>({
     resolver: zodResolver(phoneSchema),
   })
@@ -88,26 +110,16 @@ export default function PhonesPage() {
   const loadData = async () => {
     setIsLoading(true)
     try {
-      const [phonesData, networksData, platformsData] = await Promise.all([
+      const [phonesData, networksData, platformsData, betIdData] = await Promise.all([
         phoneApi.getAll(),
         networkApi.getAll(),
         platformApi.getAll(),
+          userAppIdApi.getAll(),
       ])
       setUserPhones(phonesData)
       setNetworks(networksData)
       setPlatforms(platformsData)
-
-      // Load all app IDs for all platforms
-      const allAppIds: UserAppId[] = []
-      for (const platform of platformsData) {
-        try {
-          const appIds = await userAppIdApi.getByPlatform(platform.id.toString())
-          allAppIds.push(...appIds)
-        } catch (error) {
-          console.error(`Failed to load app IDs for platform ${platform.id}:`, error)
-        }
-      }
-      setUserAppIds(allAppIds)
+      setUserAppIds(betIdData)
     } catch (error) {
       console.error("Failed to load data:", error)
     } finally {
@@ -116,46 +128,38 @@ export default function PhonesPage() {
   }
 
   const handlePhoneSubmit = async (data: PhoneFormData) => {
-    setIsSubmitting(true)
-    try {
-      const normalizedPhone = normalizePhoneNumber(data.phone)
-      if (editingPhone) {
-        await phoneApi.update(editingPhone.id, normalizedPhone, data.network)
-        toast.success("Numéro modifié avec succès!")
-      } else {
-        await phoneApi.create(normalizedPhone, data.network)
-        toast.success("Numéro ajouté avec succès!")
-      }
-      setIsPhoneDialogOpen(false)
-      phoneForm.reset()
-      setEditingPhone(null)
-      loadData()
-    } catch (error) {
-      console.error("Phone operation error:", error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+      setIsSubmitting(true)
+      try {
+          // Validate and clean phone number
+          const cleanedPhone = data.phone.trim().replace(/\s+/g, "")
 
-  const handleAppIdSubmit = async (data: AppIdFormData) => {
-    setIsSubmitting(true)
-    try {
-      if (editingAppId) {
-        await userAppIdApi.update(editingAppId.id, data.user_app_id, data.app)
-        toast.success("ID de pari modifié avec succès!")
-      } else {
-        await userAppIdApi.create(data.user_app_id, data.app)
-        toast.success("ID de pari ajouté avec succès!")
+          // Check if phone number contains only digits
+          if (!/^\d+$/.test(cleanedPhone)) {
+              toast.error("Veuillez entrer uniquement des chiffres")
+              setIsSubmitting(false)
+              return
+          }
+
+          // Combine country code with cleaned phone number
+          const fullPhone = data.country + cleanedPhone
+
+          if (editingPhone) {
+              await phoneApi.update(editingPhone.id, fullPhone, data.network)
+              toast.success("Numéro modifié avec succès!")
+          } else {
+              await phoneApi.create(fullPhone, data.network)
+              toast.success("Numéro ajouté avec succès!")
+          }
+          setIsPhoneDialogOpen(false)
+          phoneForm.reset()
+          setEditingPhone(null)
+          loadData()
+      } catch (error) {
+          console.error("Phone operation error:", error)
+          toast.error("Erreur lors de l'opération téléphone")
+      } finally {
+          setIsSubmitting(false)
       }
-      setIsAppIdDialogOpen(false)
-      appIdForm.reset()
-      setEditingAppId(null)
-      loadData()
-    } catch (error) {
-      console.error("App ID operation error:", error)
-    } finally {
-      setIsSubmitting(false)
-    }
   }
 
   const handleDelete = async () => {
@@ -189,7 +193,7 @@ export default function PhonesPage() {
     setEditingAppId(appId)
     appIdForm.reset({
       user_app_id: appId.user_app_id,
-      app: appId.app.toString(),
+      app: appId.app_details.id,
     })
     setIsAppIdDialogOpen(true)
   }
@@ -204,6 +208,215 @@ export default function PhonesPage() {
     setIsAppIdDialogOpen(false)
     setEditingAppId(null)
     appIdForm.reset()
+    setErrorMessage("")
+    setEditErrorMessage("")
+  }
+
+  const handleAddBetId = async () => {
+    const newBetId = appIdForm.getValues("user_app_id")
+    const appId = appIdForm.getValues("app")
+
+    if (!newBetId.trim() || !appId) {
+      toast.error("Veuillez remplir tous les champs")
+      return
+    }
+
+    const selectedPlatform = platforms.find(p => p.id === appId)
+    if (!selectedPlatform) {
+      toast.error("Plateforme non trouvée")
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      const searchResult = await userAppIdApi.searchUser(selectedPlatform.id, newBetId.trim())
+
+      // Validate user exists
+      if (searchResult.UserId === 0) {
+        setErrorMessage("Utilisateur non trouvé. Veuillez vérifier l'ID de pari.")
+        setIsErrorModalOpen(true)
+        setIsSearching(false)
+        return
+      }
+
+      // Validate currency (CurrencyId === 27 for XOF)
+      if (searchResult.CurrencyId !== 27) {
+        setErrorMessage("Cet utilisateur n'utilise pas la devise XOF. Veuillez vérifier votre compte.")
+        setIsErrorModalOpen(true)
+        setIsSearching(false)
+        return
+      }
+
+      // Valid user - show confirmation modal with search result
+      setPendingBetId({
+        appId: appId,
+        betId: newBetId.trim(),
+        userName: searchResult.Name
+      })
+      setIsConfirmationModalOpen(true)
+      setIsAppIdDialogOpen(false) // Close the add dialog
+    } catch (error: any) {
+      // Handle API errors
+      if (error?.response?.status === 400) {
+        const errorData = error.response.data
+        if (errorData?.error_time_message) {
+          const timeMessage = Array.isArray(errorData.error_time_message)
+            ? errorData.error_time_message[0]
+            : errorData.error_time_message
+          setErrorMessage(`Veuillez patienter ${timeMessage} avant de créer une nouvelle transaction`)
+        } else if (errorData?.userid) {
+          setErrorMessage(Array.isArray(errorData.userid) ? errorData.userid[0] : errorData.userid)
+        } else if (errorData?.app_id) {
+          setErrorMessage(Array.isArray(errorData.app_id) ? errorData.app_id[0] : errorData.app_id)
+        } else if (errorData?.detail) {
+          setErrorMessage(errorData.detail)
+        } else {
+          setErrorMessage("Erreur lors de la recherche. Veuillez réessayer.")
+        }
+      } else {
+        setErrorMessage("Erreur lors de la recherche. Veuillez réessayer.")
+      }
+      setIsErrorModalOpen(true)
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const handleSearchEditBetId = async () => {
+    const newBetId = appIdForm.getValues("user_app_id")
+    const appId = appIdForm.getValues("app")
+
+    if (!newBetId.trim() || !appId || !editingAppId) return
+
+    const selectedPlatform = platforms.find(p => p.id === appId)
+    if (!selectedPlatform) {
+      toast.error("Plateforme non trouvée")
+      return
+    }
+
+    setIsEditSearching(true)
+    try {
+      const searchResult = await userAppIdApi.searchUser(selectedPlatform.id, newBetId.trim())
+
+      // Validate user exists
+      if (searchResult.UserId === 0) {
+        setEditErrorMessage("Utilisateur non trouvé. Veuillez vérifier l'ID de pari.")
+        setIsEditErrorModalOpen(true)
+        setIsEditSearching(false)
+        return
+      }
+
+      // Validate currency (CurrencyId === 27 for XOF)
+      if (searchResult.CurrencyId !== 27) {
+        setEditErrorMessage("Cet utilisateur n'utilise pas la devise XOF. Veuillez vérifier votre compte.")
+        setIsEditErrorModalOpen(true)
+        setIsEditSearching(false)
+        return
+      }
+
+      // Valid user - show confirmation modal with search result
+      setPendingEditBetId({
+        id: editingAppId.id,
+        appId: appId,
+        betId: newBetId.trim(),
+        userName: searchResult.Name
+      })
+      setIsEditConfirmationModalOpen(true)
+      setIsAppIdDialogOpen(false) // Close the edit dialog
+    } catch (error: any) {
+      // Handle API errors
+      if (error?.response?.status === 400) {
+        const errorData = error.response.data
+        if (errorData?.error_time_message) {
+          const timeMessage = Array.isArray(errorData.error_time_message)
+            ? errorData.error_time_message[0]
+            : errorData.error_time_message
+          setEditErrorMessage(`Veuillez patienter ${timeMessage} avant de créer une nouvelle transaction`)
+        } else if (errorData?.userid) {
+          setEditErrorMessage(Array.isArray(errorData.userid) ? errorData.userid[0] : errorData.userid)
+        } else if (errorData?.app_id) {
+          setEditErrorMessage(Array.isArray(errorData.app_id) ? errorData.app_id[0] : errorData.app_id)
+        } else if (errorData?.detail) {
+          setEditErrorMessage(errorData.detail)
+        } else {
+          setEditErrorMessage("Erreur lors de la recherche. Veuillez réessayer.")
+        }
+      } else {
+        setEditErrorMessage("Erreur lors de la recherche. Veuillez réessayer.")
+      }
+      setIsEditErrorModalOpen(true)
+    } finally {
+      setIsEditSearching(false)
+    }
+  }
+
+  const handleConfirmAddBetId = async () => {
+    if (!pendingBetId) return
+
+    setIsSubmitting(true)
+    try {
+      await userAppIdApi.create(pendingBetId.betId, pendingBetId.appId)
+      appIdForm.reset()
+      setPendingBetId(null)
+      setIsConfirmationModalOpen(false)
+      toast.success("ID de pari ajouté avec succès")
+      loadData()
+    } catch (error: any) {
+      // Handle API errors
+      if (error?.response?.status === 400) {
+        const errorData = error.response.data
+        if (errorData?.error_time_message) {
+          const timeMessage = Array.isArray(errorData.error_time_message)
+            ? errorData.error_time_message[0]
+            : errorData.error_time_message
+          toast.error(`Veuillez patienter ${timeMessage} avant de créer une nouvelle transaction`)
+        } else if (errorData?.user_app_id) {
+          const errorMsg = Array.isArray(errorData.user_app_id) ? errorData.user_app_id[0] : errorData.user_app_id
+          toast.error(errorMsg)
+        } else {
+          toast.error("Erreur lors de l'ajout de l'ID de pari")
+        }
+      } else {
+        toast.error("Erreur lors de l'ajout de l'ID de pari")
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleConfirmEditBetId = async () => {
+    if (!pendingEditBetId) return
+
+    setIsSubmitting(true)
+    try {
+      await userAppIdApi.update(pendingEditBetId.id, pendingEditBetId.betId, pendingEditBetId.appId)
+      appIdForm.reset()
+      setEditingAppId(null)
+      setPendingEditBetId(null)
+      setIsEditConfirmationModalOpen(false)
+      toast.success("ID de pari modifié avec succès")
+      loadData()
+    } catch (error: any) {
+      // Handle API errors
+      if (error?.response?.status === 400) {
+        const errorData = error.response.data
+        if (errorData?.error_time_message) {
+          const timeMessage = Array.isArray(errorData.error_time_message)
+            ? errorData.error_time_message[0]
+            : errorData.error_time_message
+          toast.error(`Veuillez patienter ${timeMessage} avant de créer une nouvelle transaction`)
+        } else if (errorData?.user_app_id) {
+          const errorMsg = Array.isArray(errorData.user_app_id) ? errorData.user_app_id[0] : errorData.user_app_id
+          toast.error(errorMsg)
+        } else {
+          toast.error("Erreur lors de la modification de l'ID de pari")
+        }
+      } else {
+        toast.error("Erreur lors de la modification de l'ID de pari")
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -262,42 +475,67 @@ export default function PhonesPage() {
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Numéro de téléphone</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="+225 01 02 03 04 05"
-                        {...phoneForm.register("phone")}
-                        disabled={isSubmitting}
-                      />
-                      {phoneForm.formState.errors.phone && (
-                        <p className="text-sm text-destructive">{phoneForm.formState.errors.phone.message}</p>
-                      )}
-                    </div>
+                      <div className="flex gap-2 w-full">
+                          <div className="space-y-2 w-full">
+                              <Label htmlFor="network">Réseau mobile</Label>
+                              <Select
+                                  onValueChange={(value) => phoneForm.setValue("network", Number.parseInt(value))}
+                                  defaultValue={editingPhone?.network.toString()}
+                                  disabled={isSubmitting}
+                              >
+                                  <SelectTrigger id="network" className="w-full">
+                                      <SelectValue placeholder="Sélectionnez un réseau" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      {networks.map((network) => (
+                                          <SelectItem key={network.id} value={network.id.toString()}>
+                                              {network.name}
+                                          </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                              {phoneForm.formState.errors.network && (
+                                  <p className="text-sm text-destructive">{phoneForm.formState.errors.network.message}</p>
+                              )}
+                          </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="network">Réseau mobile</Label>
-                      <Select
-                        onValueChange={(value) => phoneForm.setValue("network", Number.parseInt(value))}
-                        defaultValue={editingPhone?.network.toString()}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez un réseau" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {networks.map((network) => (
-                            <SelectItem key={network.id} value={network.id.toString()}>
-                              {network.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {phoneForm.formState.errors.network && (
-                        <p className="text-sm text-destructive">{phoneForm.formState.errors.network.message}</p>
-                      )}
-                    </div>
+                          <div className="space-y-2 w-full">
+                              <Label htmlFor="country">Pays</Label>
+                              <Select
+                                  onValueChange={(value) => phoneForm.setValue("country", value)}
+                                  defaultValue={editingPhone ? phoneForm.getValues("country") : "225"}
+                                  disabled={isSubmitting}
+                              >
+                                  <SelectTrigger id="country" className="w-full">
+                                      <SelectValue placeholder="Sélectionnez votre pays" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      {COUNTRIES.map((country) => (
+                                          <SelectItem key={country.code} value={country.code}>
+                                              {country.name}
+                                          </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                              {phoneForm.formState.errors.country && (
+                                  <p className="text-sm text-destructive">{phoneForm.formState.errors.country.message}</p>
+                              )}
+                          </div>
+                      </div>
+
+                      <div className="space-y-2 w-full">
+                          <Label htmlFor="phone">Numéro de téléphone</Label>
+                          <Input
+                              id="phone"
+                              type="tel"
+                              placeholder="+225 01 02 03 04 05"
+                              {...phoneForm.register("phone")}
+                              disabled={isSubmitting}
+                          />
+                          {phoneForm.formState.errors.phone && (
+                              <p className="text-sm text-destructive">{phoneForm.formState.errors.phone.message}</p>
+                          )}
+                      </div>
 
                     <div className="flex gap-3">
                       <Button
@@ -339,84 +577,87 @@ export default function PhonesPage() {
                   <p className="text-xs sm:text-sm text-muted-foreground">Ajoutez votre premier numéro pour commencer</p>
                 </div>
               ) : (
-                <div className="space-y-3 sm:hidden">
-                  {userPhones.map((phone) => (
-                    <Card key={phone.id} className="border-2">
-                      <CardContent className="p-4">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs text-muted-foreground mb-1">Numéro</p>
-                              <p className="font-medium text-sm truncate">{phone.phone}</p>
-                            </div>
+                  <>
+                      <div className="space-y-3 sm:hidden">
+                          {userPhones.map((phone) => (
+                              <Card key={phone.id} className="border-2">
+                                  <CardContent className="p-4">
+                                      <div className="space-y-3">
+                                          <div className="flex items-center justify-between">
+                                              <div className="flex-1 min-w-0">
+                                                  <p className="text-xs text-muted-foreground mb-1">Numéro</p>
+                                                  <p className="font-medium text-sm truncate">{phone.phone}</p>
+                                              </div>
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                              <div className="flex-1 min-w-0">
+                                                  <p className="text-xs text-muted-foreground mb-1">Réseau</p>
+                                                  <Badge variant="outline" className="text-xs">
+                                                      {networks.find((n) => n.id === phone.network)?.public_name || "Inconnu"}
+                                                  </Badge>
+                                              </div>
+                                          </div>
+                                          <div className="flex justify-end gap-2 pt-2 border-t">
+                                              <Button variant="ghost" size="sm" onClick={() => openEditPhoneDialog(phone)}>
+                                                  <Edit className="h-4 w-4 mr-1" />
+                                                  <span className="text-xs">Modifier</span>
+                                              </Button>
+                                              <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => setDeleteTarget({ type: "phone", id: phone.id })}
+                                              >
+                                                  <Trash2 className="h-4 w-4 mr-1 text-destructive" />
+                                                  <span className="text-xs">Supprimer</span>
+                                              </Button>
+                                          </div>
+                                      </div>
+                                  </CardContent>
+                              </Card>
+                          ))}
+                      </div>
+                      {userPhones.length > 0 && (
+                          <div className="hidden sm:block rounded-xl border-2 overflow-hidden">
+                              <Table>
+                                  <TableHeader>
+                                      <TableRow>
+                                          <TableHead>Numéro</TableHead>
+                                          <TableHead>Réseau</TableHead>
+                                          <TableHead className="text-right">Actions</TableHead>
+                                      </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                      {userPhones.map((phone) => (
+                                          <TableRow key={phone.id}>
+                                              <TableCell className="font-medium">{phone.phone}</TableCell>
+                                              <TableCell>
+                                                  <Badge variant="outline">
+                                                      {networks.find((n) => n.id === phone.network)?.public_name || "Inconnu"}
+                                                  </Badge>
+                                              </TableCell>
+                                              <TableCell className="text-right">
+                                                  <div className="flex justify-end gap-2">
+                                                      <Button variant="ghost" size="icon" onClick={() => openEditPhoneDialog(phone)}>
+                                                          <Edit className="h-4 w-4" />
+                                                      </Button>
+                                                      <Button
+                                                          variant="ghost"
+                                                          size="icon"
+                                                          onClick={() => setDeleteTarget({ type: "phone", id: phone.id })}
+                                                      >
+                                                          <Trash2 className="h-4 w-4 text-destructive" />
+                                                      </Button>
+                                                  </div>
+                                              </TableCell>
+                                          </TableRow>
+                                      ))}
+                                  </TableBody>
+                              </Table>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs text-muted-foreground mb-1">Réseau</p>
-                              <Badge variant="outline" className="text-xs">
-                                {networks.find((n) => n.id === phone.network)?.name || "Inconnu"}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="flex justify-end gap-2 pt-2 border-t">
-                            <Button variant="ghost" size="sm" onClick={() => openEditPhoneDialog(phone)}>
-                              <Edit className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Modifier</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setDeleteTarget({ type: "phone", id: phone.id })}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1 text-destructive" />
-                              <span className="text-xs">Supprimer</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                      )}
+                  </>
               )}
-              {userPhones.length > 0 && (
-                <div className="hidden sm:block rounded-xl border-2 overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Numéro</TableHead>
-                        <TableHead>Réseau</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {userPhones.map((phone) => (
-                        <TableRow key={phone.id}>
-                          <TableCell className="font-medium">{phone.phone}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {networks.find((n) => n.id === phone.network)?.name || "Inconnu"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon" onClick={() => openEditPhoneDialog(phone)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setDeleteTarget({ type: "phone", id: phone.id })}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+
             </CardContent>
           </Card>
         </TabsContent>
@@ -436,7 +677,13 @@ export default function PhonesPage() {
               </div>
               <Dialog open={isAppIdDialogOpen} onOpenChange={setIsAppIdDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={() => setEditingAppId(null)} size="sm" className="w-full sm:w-auto">
+                  <Button onClick={() =>{
+                      setEditingAppId(null)
+                      appIdForm.reset({
+                          user_app_id: undefined,
+                          app: undefined,
+                      })
+                  }} size="sm" className="w-full sm:w-auto">
                     <Plus className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="text-xs sm:text-sm">Ajouter</span>
                   </Button>
@@ -448,13 +695,13 @@ export default function PhonesPage() {
                       {editingAppId ? "Modifiez votre ID de pari" : "Ajoutez un nouvel ID de pari"}
                     </DialogDescription>
                   </DialogHeader>
-                  <form onSubmit={appIdForm.handleSubmit(handleAppIdSubmit)} className="space-y-4">
+                  <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="app">Plateforme de pari</Label>
                       <Select
                         onValueChange={(value) => appIdForm.setValue("app", value)}
-                        defaultValue={editingAppId?.app.toString()}
-                        disabled={isSubmitting}
+                        defaultValue={editingAppId?.app_details.id}
+                        disabled={isSearching || isEditSearching || isSubmitting}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionnez une plateforme" />
@@ -479,7 +726,12 @@ export default function PhonesPage() {
                         type="text"
                         placeholder="Votre ID sur la plateforme"
                         {...appIdForm.register("user_app_id")}
-                        disabled={isSubmitting}
+                        disabled={isSearching || isEditSearching || isSubmitting}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !isSearching && !isEditSearching && !isSubmitting) {
+                            editingAppId ? handleSearchEditBetId() : handleAddBetId()
+                          }
+                        }}
                       />
                       {appIdForm.formState.errors.user_app_id && (
                         <p className="text-sm text-destructive">{appIdForm.formState.errors.user_app_id.message}</p>
@@ -492,23 +744,29 @@ export default function PhonesPage() {
                         variant="outline"
                         onClick={closeAppIdDialog}
                         className="flex-1 bg-transparent"
+                        disabled={isSearching || isEditSearching || isSubmitting}
                       >
                         Annuler
                       </Button>
-                      <Button type="submit" disabled={isSubmitting} className="flex-1">
-                        {isSubmitting ? (
+                      <Button
+                        type="button"
+                        onClick={editingAppId ? handleSearchEditBetId : handleAddBetId}
+                        disabled={isSearching || isEditSearching || isSubmitting}
+                        className="flex-1"
+                      >
+                        {(isSearching || isEditSearching) ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Enregistrement...
+                            Recherche...
                           </>
                         ) : editingAppId ? (
-                          "Modifier"
+                          "Rechercher"
                         ) : (
-                          "Ajouter"
+                          "Rechercher"
                         )}
                       </Button>
                     </div>
-                  </form>
+                  </div>
                 </DialogContent>
               </Dialog>
             </CardHeader>
@@ -526,84 +784,87 @@ export default function PhonesPage() {
                   <p className="text-xs sm:text-sm text-muted-foreground">Ajoutez votre premier ID pour commencer</p>
                 </div>
               ) : (
-                <div className="space-y-3 sm:hidden">
-                  {userAppIds.map((appId, index) => (
-                    <Card key={`appId-mobile-${appId.id}-${appId.app || 'unknown'}-${index}`} className="border-2">
-                      <CardContent className="p-4">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs text-muted-foreground mb-1">ID de pari</p>
-                              <p className="font-medium text-sm truncate">{appId.user_app_id}</p>
-                            </div>
+                  <>
+                      <div className="space-y-3 sm:hidden">
+                          {userAppIds.map((appId, index) => (
+                              <Card key={`appId-mobile-${appId.id}-${appId.app_details.name || 'unknown'}-${index}`} className="border-2">
+                                  <CardContent className="p-4">
+                                      <div className="space-y-3">
+                                          <div className="flex items-center justify-between">
+                                              <div className="flex-1 min-w-0">
+                                                  <p className="text-xs text-muted-foreground mb-1">ID de pari</p>
+                                                  <p className="font-medium text-sm truncate">{appId.user_app_id}</p>
+                                              </div>
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                              <div className="flex-1 min-w-0">
+                                                  <p className="text-xs text-muted-foreground mb-1">Plateforme</p>
+                                                  <Badge variant="outline" className="text-xs">
+                                                      {appId.app_details.name !=="" ? appId.app_details.name : "Inconnu"}
+                                                  </Badge>
+                                              </div>
+                                          </div>
+                                          <div className="flex justify-end gap-2 pt-2 border-t">
+                                              <Button variant="ghost" size="sm" onClick={() => openEditAppIdDialog(appId)}>
+                                                  <Edit className="h-4 w-4 mr-1" />
+                                                  <span className="text-xs">Modifier</span>
+                                              </Button>
+                                              <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => setDeleteTarget({ type: "appId", id: appId.id })}
+                                              >
+                                                  <Trash2 className="h-4 w-4 mr-1 text-destructive" />
+                                                  <span className="text-xs">Supprimer</span>
+                                              </Button>
+                                          </div>
+                                      </div>
+                                  </CardContent>
+                              </Card>
+                          ))}
+                      </div>
+                      {userAppIds.length > 0 && (
+                          <div className="hidden sm:block rounded-xl border-2 overflow-hidden">
+                              <Table>
+                                  <TableHeader>
+                                      <TableRow>
+                                          <TableHead>ID de pari</TableHead>
+                                          <TableHead>Plateforme</TableHead>
+                                          <TableHead className="text-right">Actions</TableHead>
+                                      </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                      {userAppIds.map((appId, index) => (
+                                          <TableRow key={`appId-table-${appId.id}-${appId.app_details.name || 'unknown'}-${index}`}>
+                                              <TableCell className="font-medium">{appId.user_app_id}</TableCell>
+                                              <TableCell>
+                                                  <Badge variant="outline">
+                                                      {appId.app_details.name!=="" ? appId.app_details.name : "Inconnu"}
+                                                  </Badge>
+                                              </TableCell>
+                                              <TableCell className="text-right">
+                                                  <div className="flex justify-end gap-2">
+                                                      <Button variant="ghost" size="icon" onClick={() => openEditAppIdDialog(appId)}>
+                                                          <Edit className="h-4 w-4" />
+                                                      </Button>
+                                                      <Button
+                                                          variant="ghost"
+                                                          size="icon"
+                                                          onClick={() => setDeleteTarget({ type: "appId", id: appId.id })}
+                                                      >
+                                                          <Trash2 className="h-4 w-4 text-destructive" />
+                                                      </Button>
+                                                  </div>
+                                              </TableCell>
+                                          </TableRow>
+                                      ))}
+                                  </TableBody>
+                              </Table>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs text-muted-foreground mb-1">Plateforme</p>
-                              <Badge variant="outline" className="text-xs">
-                                {platforms.find((p) => p.id === appId.app)?.name || "Inconnu"}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="flex justify-end gap-2 pt-2 border-t">
-                            <Button variant="ghost" size="sm" onClick={() => openEditAppIdDialog(appId)}>
-                              <Edit className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Modifier</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setDeleteTarget({ type: "appId", id: appId.id })}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1 text-destructive" />
-                              <span className="text-xs">Supprimer</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                      )}
+                  </>
               )}
-              {userAppIds.length > 0 && (
-                <div className="hidden sm:block rounded-xl border-2 overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID de pari</TableHead>
-                        <TableHead>Plateforme</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {userAppIds.map((appId, index) => (
-                        <TableRow key={`appId-table-${appId.id}-${appId.app || 'unknown'}-${index}`}>
-                          <TableCell className="font-medium">{appId.user_app_id}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {platforms.find((p) => p.id === appId.app)?.name || "Inconnu"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon" onClick={() => openEditAppIdDialog(appId)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setDeleteTarget({ type: "appId", id: appId.id })}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+
             </CardContent>
           </Card>
         </TabsContent>
@@ -627,6 +888,160 @@ export default function PhonesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Bet ID Confirmation Modal */}
+      <Dialog open={isConfirmationModalOpen} onOpenChange={setIsConfirmationModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Confirmer l'ajout
+            </DialogTitle>
+            <DialogDescription>
+              Voulez-vous ajouter cet ID de pari à vos IDs sauvegardés ?
+            </DialogDescription>
+          </DialogHeader>
+          {pendingBetId && (
+            <div className="space-y-2 py-4">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Nom:</span>
+                <span className="text-sm font-medium">{pendingBetId.userName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">ID de pari:</span>
+                <span className="text-sm font-medium">{pendingBetId.betId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Plateforme:</span>
+                <span className="text-sm font-medium">{platforms.find(p => p.id === pendingBetId.appId )?.name}</span>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsConfirmationModalOpen(false)
+                setPendingBetId(null)
+              }}
+            >
+              Annuler
+            </Button>
+            <Button onClick={handleConfirmAddBetId} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Ajout...
+                </>
+              ) : (
+                "Confirmer"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Error Modal */}
+      <Dialog open={isErrorModalOpen} onOpenChange={setIsErrorModalOpen}>
+        <DialogContent className="sm:max-w-md bg-white dark:bg-gray-900">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-600" />
+              Erreur
+            </DialogTitle>
+            <DialogDescription>
+              {errorMessage || "Une erreur est survenue"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setIsErrorModalOpen(false)
+                setErrorMessage("")
+              }}
+            >
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Confirmation Modal */}
+      <Dialog open={isEditConfirmationModalOpen} onOpenChange={setIsEditConfirmationModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Confirmer la modification
+            </DialogTitle>
+            <DialogDescription>
+              Voulez-vous modifier cet ID de pari ?
+            </DialogDescription>
+          </DialogHeader>
+          {pendingEditBetId && (
+            <div className="space-y-2 py-4">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Nom:</span>
+                <span className="text-sm font-medium">{pendingEditBetId.userName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Nouvel ID de pari:</span>
+                <span className="text-sm font-medium">{pendingEditBetId.betId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Plateforme:</span>
+                <span className="text-sm font-medium">{platforms.find(p => p.id === pendingEditBetId.appId)?.name}</span>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditConfirmationModalOpen(false)
+                setPendingEditBetId(null)
+              }}
+            >
+              Annuler
+            </Button>
+            <Button onClick={handleConfirmEditBetId} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Modification...
+                </>
+              ) : (
+                "Confirmer"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Error Modal */}
+      <Dialog open={isEditErrorModalOpen} onOpenChange={setIsEditErrorModalOpen}>
+        <DialogContent className="sm:max-w-md bg-white dark:bg-gray-900">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-600" />
+              Erreur
+            </DialogTitle>
+            <DialogDescription>
+              {editErrorMessage || "Une erreur est survenue"}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setIsEditErrorModalOpen(false)
+                setEditErrorMessage("")
+              }}
+            >
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

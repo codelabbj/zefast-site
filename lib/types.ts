@@ -84,7 +84,8 @@ export interface UserAppId {
   user_app_id: string
   user: string | null
   telegram_user: number
-  app: string
+    app_details: Platform
+    app_name: string
 }
 
 export interface Transaction {
@@ -95,7 +96,8 @@ export interface Transaction {
     last_name: string
     email: string
   }
-  amount: number
+    app_details:Platform
+    amount: number
   deposit_reward_amount: number | null
   reference: string
   type_trans: TransactionType
@@ -158,11 +160,9 @@ export interface SearchUserResponse {
 }
 
 export interface Advertisement {
-  id?: number
-  image?: string
-  url?: string
-  title?: string
-  description?: string
+    id: number;
+    image: string;
+    enable: boolean;
 }
 
 export interface Settings {
@@ -175,4 +175,11 @@ export interface Coupon {
   created_at: string
   code: string
   bet_app: string
+}
+
+export interface PaginatedResponse<T> {
+    count: number
+    next: string | null
+    previous: string | null
+    results: T[]
 }

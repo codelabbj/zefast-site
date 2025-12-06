@@ -1,18 +1,18 @@
 import api from "./api"
 import type {
-  AuthResponse,
-  Network,
-  UserPhone,
-  Platform,
-  UserAppId,
-  Transaction,
-  PaginatedResponse,
-  Notification,
-  Bonus,
-  SearchUserResponse,
-  Advertisement,
-  Settings,
-  Coupon,
+    AuthResponse,
+    Network,
+    UserPhone,
+    Platform,
+    UserAppId,
+    Transaction,
+    PaginatedResponse,
+    Notification,
+    Bonus,
+    SearchUserResponse,
+    Advertisement,
+    Settings,
+    Coupon, User,
 } from "./types"
 
 export const authApi = {
@@ -65,6 +65,20 @@ export const authApi = {
     const { data } = await api.post("/auth/change_password", passwordData)
     return data
   },
+
+    requestOtp: async (email: string) => {
+        const { data } = await api.post("/auth/send_otp", { email })
+        return data
+    },
+
+    resetPassword: async (otp:string, new_password : string, confirm_new_password:string) => {
+        const { data } = await api.post("/auth/reset_password", {
+            otp,
+            new_password,
+            confirm_new_password
+        })
+        return data
+    },
 }
 
 export const networkApi = {
@@ -109,6 +123,12 @@ export const platformApi = {
 }
 
 export const userAppIdApi = {
+
+    getAll: async () => {
+        const { data } = await api.get<UserAppId[]>("/mobcash/user-app-id/")
+        return data
+    },
+
   getByPlatform: async (bet_app: string) => {
     const { data } = await api.get<UserAppId[]>(`/mobcash/user-app-id?bet_app=${bet_app}`)
     return data
@@ -213,9 +233,9 @@ export const bonusApi = {
 
 export const fcmApi = {
   registerToken: async (token: string, platform: string = 'web', userId?: string | number) => {
-    const { data } = await api.post('/mobcash/fcm-token/', {
-      token,
-      platform,
+    const { data } = await api.post('/mobcash/devices/', {
+      registration_id:token,
+      type : platform,
       user_id: userId || null,
     })
     return data
@@ -228,7 +248,7 @@ export const fcmApi = {
 
 export const advertisementApi = {
   get: async () => {
-    const { data } = await api.get<Advertisement>("/mobcash/ann")
+    const { data } = await api.get<PaginatedResponse<Advertisement>>("/mobcash/ann")
     return data
   },
 }
