@@ -17,6 +17,7 @@ import { setupNotifications } from "@/lib/fcm-helper"
 import Image from "next/image";
 import logo from "@/public/logo.png"
 import { normalizePhoneNumber } from "@/lib/utils"
+import { MobileAppDownload } from "@/components/mobile-app-download"
 
 const loginSchema = z.object({
   email_or_phone: z.string().min(1, "Email ou téléphone requis"),
@@ -214,6 +215,13 @@ export default function LoginPage() {
               <Link href="/signup" className="text-primary hover:underline font-semibold">
                 Créer un compte
               </Link>
+            </div>
+
+            <div className="mt-4 sm:mt-6 flex justify-center">
+              <MobileAppDownload
+                variant="outline"
+                className="border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
+              />
             </div>
           </div>
         </div>

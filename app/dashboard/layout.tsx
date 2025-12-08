@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LogOut, User, Loader2, Bell, Ticket } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { MobileAppDownload } from "@/components/mobile-app-download"
 import Image from "next/image";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -87,6 +88,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <span className="hidden sm:inline">Coupons</span>
                 </Link>
               </Button>
+              <MobileAppDownload
+                variant="outline"
+                className="h-12 px-4 rounded-xl border-2 hover:bg-primary/10 transition-all duration-300 hover:scale-105"
+              />
               <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-12 w-12 rounded-full ring-2 ring-primary/20 hover:ring-primary/40 transition-all">

@@ -14,6 +14,7 @@ import { toast } from "react-hot-toast"
 import { Loader2, UserPlus, CheckCircle, Eye, EyeOff } from "lucide-react"
 import { normalizePhoneNumber } from "@/lib/utils"
 import { useSettings } from "@/lib/hooks/use-settings"
+import { MobileAppDownload } from "@/components/mobile-app-download"
 
 const createSignupSchema = (includeReferralCode: boolean) => {
   const baseSchema = z.object({
@@ -315,6 +316,13 @@ export default function SignupPage() {
               <Link href="/login" className="text-primary hover:underline font-semibold">
                 Se connecter
               </Link>
+            </div>
+
+            <div className="mt-4 sm:mt-6 flex justify-center">
+              <MobileAppDownload
+                variant="outline"
+                className="border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
+              />
             </div>
           </div>
         </div>
