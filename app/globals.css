@@ -132,6 +132,8 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-size: 14px;
+    line-height: 1.5;
     background-image:
       radial-gradient(at 0% 0%, oklch(0.95 0.08 40 / 0.3) 0px, transparent 50%),
       radial-gradient(at 100% 0%, oklch(0.95 0.08 40 / 0.3) 0px, transparent 50%),
@@ -139,6 +141,13 @@
       radial-gradient(at 0% 100%, oklch(0.95 0.08 40 / 0.2) 0px, transparent 50%);
     background-attachment: fixed;
     background-size: 100% 100%;
+  }
+
+  @media (min-width: 640px) {
+    body {
+      font-size: 16px;
+      line-height: 1.6;
+    }
   }
 
   .dark body {
@@ -229,5 +238,31 @@
   }
   .ring-withdrawal {
     --tw-ring-color: var(--color-withdrawal);
+  }
+
+  /* Mobile typography improvements */
+  .text-mobile-sm {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-mobile-base {
+    @apply text-base sm:text-lg;
+  }
+
+  .text-mobile-lg {
+    @apply text-lg sm:text-xl;
+  }
+
+  .text-mobile-xl {
+    @apply text-xl sm:text-2xl;
+  }
+
+  .text-mobile-2xl {
+    @apply text-2xl sm:text-3xl;
+  }
+
+  /* Improve line height for mobile readability */
+  .leading-mobile {
+    @apply leading-relaxed sm:leading-normal;
   }
 }

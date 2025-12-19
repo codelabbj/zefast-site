@@ -22,7 +22,7 @@ export function MobileAppDownload({
       asChild
       variant={variant}
       size={size}
-      className={`gap-2 ${className}`}
+      className={`gap-2 h-10 sm:h-11 ${className}`}
     >
       <Link
         href="https://zefast-mobile-app.vercel.app/releases/app-v1.0.2.apk"

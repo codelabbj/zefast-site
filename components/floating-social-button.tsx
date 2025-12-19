@@ -24,18 +24,18 @@ export function FloatingSocialButton() {
     : "https://t.me/"
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             size="lg"
-            className="h-14 w-14 rounded-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+            className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
           >
-            <MessageCircle className="h-6 w-6 text-white" />
+            <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-48 p-2" align="end" side="top">
-          <div className="space-y-2">
+        <PopoverContent className="w-44 sm:w-48 p-2" align="end" side="top">
+          <div className="space-y-1 sm:space-y-2">
             <Link
               href={whatsappUrl}
               target="_blank"
@@ -44,12 +44,12 @@ export function FloatingSocialButton() {
             >
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3 h-12"
+                className="w-full justify-start gap-2 sm:gap-3 h-10 sm:h-12"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
-                  <MessageCircle className="h-4 w-4 text-white" />
+                <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-green-500">
+                  <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                 </div>
-                <span className="font-medium">WhatsApp</span>
+                <span className="font-medium text-sm sm:text-base">WhatsApp</span>
               </Button>
             </Link>
             <Link
@@ -60,12 +60,12 @@ export function FloatingSocialButton() {
             >
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3 h-12"
+                className="w-full justify-start gap-2 sm:gap-3 h-10 sm:h-12"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500">
-                  <Send className="h-4 w-4 text-white" />
+                <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-blue-500">
+                  <Send className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                 </div>
-                <span className="font-medium">Telegram</span>
+                <span className="font-medium text-sm sm:text-base">Telegram</span>
               </Button>
             </Link>
           </div>

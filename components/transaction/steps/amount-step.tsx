@@ -150,29 +150,29 @@ export function AmountStep({
       {/* Amount Input */}
       <Card>
         <CardHeader>
-          <CardTitle>Montant de la transaction</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Montant de la transaction</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <Label htmlFor="amount">Montant (FCFA)</Label>
+              <Label htmlFor="amount" className="text-sm sm:text-base">Montant (FCFA)</Label>
               <Input
                 id="amount"
                 type="number"
                 value={amount || ""}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 placeholder="Entrez le montant"
-                className={errors.amount ? "border-red-500" : ""}
+                className={`h-11 sm:h-12 text-sm sm:text-base ${errors.amount ? "border-red-500" : ""}`}
               />
               {errors.amount && (
-                <p className="text-sm text-red-500 mt-1">{errors.amount}</p>
+                <p className="text-xs sm:text-sm text-red-500 mt-1">{errors.amount}</p>
               )}
             </div>
-            
+
             {amount > 0 && (
               <div className="p-3 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">Montant saisi:</p>
-                <p className="text-lg font-semibold">
+                <p className="text-xs sm:text-sm text-muted-foreground">Montant saisi:</p>
+                <p className="text-xl sm:text-2xl font-semibold">
                   {amount.toLocaleString("fr-FR", {
                     style: "currency",
                     currency: "XOF",
@@ -189,21 +189,21 @@ export function AmountStep({
       {type === "withdrawal" && (
         <Card>
           <CardHeader>
-            <CardTitle>Code de retrait</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Code de retrait</CardTitle>
           </CardHeader>
           <CardContent>
             <div>
-              <Label htmlFor="withdriwalCode">Code de retrait</Label>
+              <Label htmlFor="withdriwalCode" className="text-sm sm:text-base">Code de retrait</Label>
               <Input
                 id="withdriwalCode"
                 type="text"
                 value={withdriwalCode}
                 onChange={(e) => handleWithdriwalCodeChange(e.target.value)}
                 placeholder="Entrez votre code de retrait"
-                className={errors.withdriwalCode ? "border-red-500" : ""}
+                className={`h-11 sm:h-12 text-sm sm:text-base ${errors.withdriwalCode ? "border-red-500" : ""}`}
               />
               {errors.withdriwalCode && (
-                <p className="text-sm text-red-500 mt-1">{errors.withdriwalCode}</p>
+                <p className="text-xs sm:text-sm text-red-500 mt-1">{errors.withdriwalCode}</p>
               )}
             </div>
           </CardContent>
@@ -212,10 +212,10 @@ export function AmountStep({
 
       {/* Continue Button */}
       <div className="flex justify-end">
-        <Button 
-          onClick={onNext} 
+        <Button
+          onClick={onNext}
           disabled={!isFormValid()}
-          className="min-w-[120px]"
+          className="min-w-[120px] h-10 sm:h-11 text-sm sm:text-base"
         >
           Continuer
         </Button>

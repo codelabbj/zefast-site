@@ -119,7 +119,7 @@ export default function DepositPage() {
               // Generate USSD code: 155*2*1*settings.moov_marchand_phone*amount-1% of amount#
               const fee = Math.ceil(amount * 0.01) // 1% fee
               const netAmount = amount - fee
-              const ussdCode = `155*2*1*${marchandPhone}*${netAmount}#`
+              const ussdCode = `*155*2*1*${marchandPhone}*${netAmount}#`
 
               // Always show the USSD dialog
               setIsMoovUSSDDialogOpen(true)
@@ -327,15 +327,15 @@ export default function DepositPage() {
 
         {/* Transaction Link Modal */}
         <Dialog open={isTransactionLinkModalOpen} onOpenChange={setIsTransactionLinkModalOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md mx-4">
             <DialogHeader>
-              <DialogTitle>Continuer la transaction</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg sm:text-xl">Continuer la transaction</DialogTitle>
+              <DialogDescription className="text-sm sm:text-base">
                 Cliquez sur continuer pour continuer la transaction
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
-              <Button onClick={handleContinueTransaction}>
+            <DialogFooter className="pt-2">
+              <Button onClick={handleContinueTransaction} className="w-full sm:w-auto h-10 sm:h-11">
                 Continuer
               </Button>
             </DialogFooter>
@@ -344,21 +344,21 @@ export default function DepositPage() {
 
           {/* Moov USSD Code Dialog */}
           <Dialog open={isMoovUSSDDialogOpen} onOpenChange={setIsMoovUSSDDialogOpen}>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md mx-4">
                   <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2 text-xl">
-                          <CircleCheck className="h-5 w-5 text-primary" />
+                      <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                          <CircleCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                           Code USSD Moov
                       </DialogTitle>
-                      <DialogDescription className="text-base pt-2">
+                      <DialogDescription className="text-sm sm:text-base pt-2">
                           Vous êtes sur un ordinateur? Veuillez copier ce code et le saisir sur votre téléphone mobile.
                       </DialogDescription>
                   </DialogHeader>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                       <div className="relative">
-                          <div className="bg-muted/50 p-4 rounded-lg border-2 border-primary/30">
-                              <code className="text-sm font-mono text-center break-all text-foreground">
+                          <div className="bg-muted/50 p-3 sm:p-4 rounded-lg border-2 border-primary/30">
+                              <code className="text-sm font-mono text-center break-all text-foreground leading-relaxed">
                                   {moovUSSDCode}
                               </code>
                           </div>
@@ -372,19 +372,19 @@ export default function DepositPage() {
                                   setTimeout(() => setCopiedUSSD(false), 2000)
                                   toast.success("Code copié!")
                               }}
-                              className="absolute right-2 top-2 gap-2"
+                              className="absolute right-2 top-2 gap-1 sm:gap-2 h-9 w-9 sm:h-10 sm:w-10 p-0"
                           >
-                              {copiedUSSD ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              {copiedUSSD ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Copy className="h-3 w-3 sm:h-4 sm:w-4" />}
                           </Button>
                       </div>
                       <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
-                          <p className="text-sm text-foreground">
+                          <p className="text-xs sm:text-sm text-foreground">
                               <span className="font-semibold">Instructions:</span> Copiez le code ci-dessus, puis tapez-le sur votre téléphone mobile pour effectuer la transaction.
                           </p>
                       </div>
                   </div>
 
-                  <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3">
+                  <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
                       <Button
                           type="button"
                           variant="outline"
@@ -392,7 +392,7 @@ export default function DepositPage() {
                               setIsMoovUSSDDialogOpen(false)
                               router.push("/dashboard")
                           }}
-                          className="w-full sm:w-auto"
+                          className="w-full sm:w-auto h-10 sm:h-11"
                       >
                           Fermer
                       </Button>
@@ -403,7 +403,7 @@ export default function DepositPage() {
                               toast.success("Dépôt initié avec succès!")
                               router.push("/dashboard")
                           }}
-                          className="w-full sm:w-auto"
+                          className="w-full sm:w-auto h-10 sm:h-11"
                       >
                           Confirmer
                       </Button>
@@ -413,21 +413,21 @@ export default function DepositPage() {
 
           {/* Orange USSD Code Dialog */}
           <Dialog open={isOrangeUSSDDialogOpen} onOpenChange={setIsOrangeUSSDDialogOpen}>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md mx-4">
                   <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2 text-xl">
-                          <CircleCheck className="h-5 w-5 text-primary" />
+                      <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                          <CircleCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                           Code USSD Orange
                       </DialogTitle>
-                      <DialogDescription className="text-base pt-2">
+                      <DialogDescription className="text-sm sm:text-base pt-2">
                           Vous êtes sur un ordinateur? Veuillez copier ce code et le saisir sur votre téléphone mobile.
                       </DialogDescription>
                   </DialogHeader>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                       <div className="relative">
-                          <div className="bg-muted/50 p-4 rounded-lg border-2 border-primary/30">
-                              <code className="text-sm font-mono text-center break-all text-foreground">
+                          <div className="bg-muted/50 p-3 sm:p-4 rounded-lg border-2 border-primary/30">
+                              <code className="text-sm font-mono text-center break-all text-foreground leading-relaxed">
                                   {orangeUSSDCode}
                               </code>
                           </div>
@@ -441,19 +441,19 @@ export default function DepositPage() {
                                   setTimeout(() => setCopiedUSSD(false), 2000)
                                   toast.success("Code copié!")
                               }}
-                              className="absolute right-2 top-2 gap-2"
+                              className="absolute right-2 top-2 gap-1 sm:gap-2 h-9 w-9 sm:h-10 sm:w-10 p-0"
                           >
-                              {copiedUSSD ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              {copiedUSSD ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Copy className="h-3 w-3 sm:h-4 sm:w-4" />}
                           </Button>
                       </div>
                       <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
-                          <p className="text-sm text-foreground">
+                          <p className="text-xs sm:text-sm text-foreground">
                               <span className="font-semibold">Instructions:</span> Copiez le code ci-dessus, puis tapez-le sur votre téléphone mobile pour effectuer la transaction.
                           </p>
                       </div>
                   </div>
 
-                  <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3">
+                  <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
                       <Button
                           type="button"
                           variant="outline"
@@ -461,7 +461,7 @@ export default function DepositPage() {
                               setIsOrangeUSSDDialogOpen(false)
                               router.push("/dashboard")
                           }}
-                          className="w-full sm:w-auto"
+                          className="w-full sm:w-auto h-10 sm:h-11"
                       >
                           Fermer
                       </Button>
@@ -472,7 +472,7 @@ export default function DepositPage() {
                               toast.success("Dépôt initié avec succès!")
                               router.push("/dashboard")
                           }}
-                          className="w-full sm:w-auto"
+                          className="w-full sm:w-auto h-10 sm:h-11"
                       >
                           Confirmer
                       </Button>
