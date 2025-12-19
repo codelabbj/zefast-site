@@ -116,10 +116,10 @@ export default function DepositPage() {
                   ? settings.bf_moov_marchand_phone
                   : settings.moov_marchand_phone
 
-              // Generate USSD code: 155*2*1*settings.moov_marchand_phone*amount-1% of amount#
+              // Generate USSD code: *155*2*1*marchand_phone# (without amount - user will input it manually)
               const fee = Math.ceil(amount * 0.01) // 1% fee
               const netAmount = amount - fee
-              const ussdCode = `*155*2*1*${marchandPhone}*${netAmount}#`
+              const ussdCode = `*155*2*1*${marchandPhone}#`
 
               // Always show the USSD dialog
               setIsMoovUSSDDialogOpen(true)
@@ -378,9 +378,16 @@ export default function DepositPage() {
                           </Button>
                       </div>
                       <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
-                          <p className="text-xs sm:text-sm text-foreground">
-                              <span className="font-semibold">Instructions:</span> Copiez le code ci-dessus, puis tapez-le sur votre téléphone mobile pour effectuer la transaction.
-                          </p>
+                          <div className="space-y-2">
+                              <p className="text-xs sm:text-sm text-foreground">
+                                  <span className="font-semibold">Instructions:</span>
+                              </p>
+                              <ol className="text-xs sm:text-sm text-foreground list-decimal list-inside space-y-1 ml-4">
+                                  <li>Copiez et composez le code USSD ci-dessus</li>
+                                  <li>Lorsque demandé, saisissez le montant: <strong className="text-primary">{(amount - Math.ceil(amount * 0.01)).toLocaleString("fr-FR")} FCFA</strong></li>
+                                  <li>Confirmez la transaction</li>
+                              </ol>
+                          </div>
                       </div>
                   </div>
 

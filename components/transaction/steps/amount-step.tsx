@@ -170,15 +170,48 @@ export function AmountStep({
             </div>
 
             {amount > 0 && (
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-xs sm:text-sm text-muted-foreground">Montant saisi:</p>
-                <p className="text-xl sm:text-2xl font-semibold">
-                  {amount.toLocaleString("fr-FR", {
-                    style: "currency",
-                    currency: "XOF",
-                    minimumFractionDigits: 0,
-                  })}
-                </p>
+              <div className="space-y-3">
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-xs sm:text-sm text-muted-foreground">Montant saisi:</p>
+                  <p className="text-xl sm:text-2xl font-semibold">
+                    {amount.toLocaleString("fr-FR", {
+                      style: "currency",
+                      currency: "XOF",
+                      minimumFractionDigits: 0,
+                    })}
+                  </p>
+                </div>
+
+                {/* Show fee calculation for Moov network deposits */}
+                {type === "deposit" && selectedNetwork?.name?.toLowerCase() === "moov" && (
+                  <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Frais (1%):</span>
+                        <span className="font-medium text-destructive">
+                          -{Math.ceil(amount * 0.01).toLocaleString("fr-FR", {
+                            style: "currency",
+                            currency: "XOF",
+                            minimumFractionDigits: 0,
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm font-semibold">
+                        <span className="text-muted-foreground">Montant à payer via USSD:</span>
+                        <span className="text-primary">
+                          {(amount - Math.ceil(amount * 0.01)).toLocaleString("fr-FR", {
+                            style: "currency",
+                            currency: "XOF",
+                            minimumFractionDigits: 0,
+                          })}
+                        </span>
+                      </div>
+                      <div className="mt-3 p-2 bg-primary/10 rounded text-xs text-center text-primary font-medium">
+                        💡 Vous saisirez ce montant lors de la validation USSD
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
