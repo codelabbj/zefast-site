@@ -71,6 +71,12 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect }: PhoneSte
           return
       }
 
+      // Check if phone number length is not more than 10 digits
+      if (cleanedPhone.length > 10) {
+          toast.error("Le numéro de téléphone ne doit pas dépasser 10 chiffres")
+          return
+      }
+
       setIsSubmitting(true)
       try {
           const phone = selectedCountry + cleanedPhone
@@ -95,6 +101,12 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect }: PhoneSte
       // Check if phone number contains only digits
       if (!/^\d+$/.test(cleanedPhone)) {
           toast.error("Veuillez entrer uniquement des chiffres")
+          return
+      }
+
+      // Check if phone number length is not more than 10 digits
+      if (cleanedPhone.length > 10) {
+          toast.error("Le numéro de téléphone ne doit pas dépasser 10 chiffres")
           return
       }
 
@@ -266,7 +278,11 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect }: PhoneSte
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
                 placeholder="Ex: 0712345678"
+                maxLength={10}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Maximum 10 chiffres (sans le code pays)
+              </p>
             </div>
           </div>
           <DialogFooter>
@@ -319,7 +335,11 @@ export function PhoneStep({ selectedNetwork, selectedPhone, onSelect }: PhoneSte
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
                 placeholder="Ex: 0712345678"
+                maxLength={10}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Maximum 10 chiffres (sans le code pays)
+              </p>
             </div>
           </div>
           <DialogFooter>
