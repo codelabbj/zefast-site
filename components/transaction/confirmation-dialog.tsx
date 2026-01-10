@@ -44,6 +44,8 @@ export function ConfirmationDialog({
   type,
   platformName,
   networkName,
+  platformCity,
+  platformStreet,
   isLoading = false
 }: ConfirmationDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
