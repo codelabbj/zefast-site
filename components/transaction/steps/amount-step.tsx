@@ -124,7 +124,7 @@ export function AmountStep({
               <span className="font-medium">{selectedPlatform.street}</span>
             </div>
           )}
-
+          
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">ID de pari</span>
             <span className="font-medium">{selectedBetId.user_app_id}</span>

@@ -73,6 +73,13 @@ export function PlatformStep({ selectedPlatform, onSelect}: PlatformStepProps) {
                   />
                   <div className="flex-1 min-w-0 w-full">
                     <h3 className="font-semibold text-sm sm:text-base truncate">{platform.name}</h3>
+                    {(platform.city || platform.street) && (
+                      <div className="text-xs text-muted-foreground mt-0.5 sm:mt-1">
+                        {platform.city && <span>Ville: {platform.city}</span>}
+                        {platform.city && platform.street && <span> • </span>}
+                        {platform.street && <span>Rue: {platform.street}</span>}
+                      </div>
+                    )}
                     <div className="flex flex-col gap-1 sm:gap-2 mt-1.5 sm:mt-1">
                       <Badge variant="outline" className="text-[10px] sm:text-xs w-fit">
                         Min: {platform.minimun_deposit.toLocaleString()} FCFA
