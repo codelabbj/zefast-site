@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { Youtube, HelpCircle, ExternalLink } from "lucide-react"
 import type { Platform, UserAppId, Network, UserPhone } from "@/lib/types"
 
 interface AmountStepProps {
@@ -39,13 +40,13 @@ export function AmountStep({
   const validateAmount = (value: number) => {
     if (!selectedPlatform) return "Plateforme non sélectionnée"
     if (value <= 0) return "Le montant doit être supérieur à 0"
-    
+
     const minAmount = type === "deposit" ? selectedPlatform.minimun_deposit : selectedPlatform.minimun_with
     const maxAmount = type === "deposit" ? selectedPlatform.max_deposit : selectedPlatform.max_win
-    
+
     if (value < minAmount) return `Le montant minimum est ${minAmount.toLocaleString()} FCFA`
     if (value > maxAmount) return `Le montant maximum est ${maxAmount.toLocaleString()} FCFA`
-    
+
     return null
   }
 
@@ -59,14 +60,14 @@ export function AmountStep({
   const handleAmountChange = (value: string) => {
     const numValue = parseFloat(value) || 0
     setAmount(numValue)
-    
+
     const error = validateAmount(numValue)
     setErrors(prev => ({ ...prev, amount: error || undefined }))
   }
 
   const handleWithdriwalCodeChange = (value: string) => {
     setWithdriwalCode(value)
-    
+
     const error = validateWithdriwalCode(value)
     setErrors(prev => ({ ...prev, withdriwalCode: error || undefined }))
   }
@@ -74,9 +75,9 @@ export function AmountStep({
   const isFormValid = () => {
     const amountError = validateAmount(amount)
     const withdriwalCodeError = type === "withdrawal" ? validateWithdriwalCode(withdriwalCode) : null
-    
-    return !amountError && !withdriwalCodeError && 
-           selectedPlatform && selectedBetId && selectedNetwork && selectedPhone
+
+    return !amountError && !withdriwalCodeError &&
+      selectedPlatform && selectedBetId && selectedNetwork && selectedPhone
   }
 
   if (!selectedPlatform || !selectedBetId || !selectedNetwork || !selectedPhone) {
@@ -103,9 +104,9 @@ export function AmountStep({
               {type === "deposit" ? "Dépôt" : "Retrait"}
             </Badge>
           </div>
-          
+
           <Separator />
-          
+
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Plateforme</span>
             <span className="font-medium">{selectedPlatform.name}</span>
@@ -124,17 +125,17 @@ export function AmountStep({
               <span className="font-medium">{selectedPlatform.street}</span>
             </div>
           )}
-          
+
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">ID de pari</span>
             <span className="font-medium">{selectedBetId.user_app_id}</span>
           </div>
-          
+
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Réseau</span>
             <span className="font-medium">{selectedNetwork.public_name}</span>
           </div>
-          
+
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Numéro de téléphone</span>
             <span className="font-medium">{selectedPhone.phone}</span>
@@ -142,24 +143,24 @@ export function AmountStep({
         </CardContent>
       </Card>
 
-        {/* Network Message */}
-        {selectedNetwork && (() => {
-            const message = type === "deposit"
-                ? selectedNetwork.deposit_message
-                : selectedNetwork.withdrawal_message
+      {/* Network Message */}
+      {selectedNetwork && (() => {
+        const message = type === "deposit"
+          ? selectedNetwork.deposit_message
+          : selectedNetwork.withdrawal_message
 
-            if (!message || message.trim() === "") return null
+        if (!message || message.trim() === "") return null
 
-            return (
-                <Card className="overflow-hidden border-primary/20 bg-primary/5">
-                    <CardContent className="p-4 sm:p-6">
-                        <p className="text-sm sm:text-base text-foreground whitespace-pre-wrap break-words">
-                            {message}
-                        </p>
-                    </CardContent>
-                </Card>
-            )
-        })()}
+        return (
+          <Card className="overflow-hidden border-primary/20 bg-primary/5">
+            <CardContent className="p-4 sm:p-6">
+              <p className="text-sm sm:text-base text-foreground whitespace-pre-wrap break-words">
+                {message}
+              </p>
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       {/* Amount Input */}
       <Card>
@@ -211,6 +212,60 @@ export function AmountStep({
           </CardContent>
         </Card>
       )}
+
+      {/* Tutorial Links */}
+      {(type === "withdrawal" && (selectedPlatform.why_withdrawal_fail || selectedPlatform.withdrawal_tuto_link)) ||
+        (type === "deposit" && selectedPlatform.deposit_tuto_link) ? (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="p-4 space-y-3">
+            <h4 className="text-sm font-semibold flex items-center gap-2">
+              <HelpCircle className="h-4 w-4 text-primary" />
+              Besoin d'aide ?
+            </h4>
+            <div className={`grid gap-2 ${type === "withdrawal" && selectedPlatform.why_withdrawal_fail && selectedPlatform.withdrawal_tuto_link
+                ? "grid-cols-1 sm:grid-cols-2"
+                : "grid-cols-1"
+              }`}>
+              {type === "withdrawal" && selectedPlatform.why_withdrawal_fail && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start gap-2 border-red-200 hover:bg-red-50 hover:text-red-600 text-xs sm:text-sm h-auto min-h-9 py-2 px-3"
+                  onClick={() => window.open(selectedPlatform.why_withdrawal_fail!, "_blank", "noopener,noreferrer")}
+                >
+                  <Youtube className="h-4 w-4 text-red-500 shrink-0" />
+                  <span className="truncate sm:whitespace-normal text-left">Pourquoi le retrait échoue ?</span>
+                  <ExternalLink className="h-3 w-3 ml-auto opacity-50 shrink-0" />
+                </Button>
+              )}
+              {type === "withdrawal" && selectedPlatform.withdrawal_tuto_link && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start gap-2 border-primary/20 hover:bg-primary/5 text-xs sm:text-sm h-auto min-h-9 py-2 px-3"
+                  onClick={() => window.open(selectedPlatform.withdrawal_tuto_link!, "_blank", "noopener,noreferrer")}
+                >
+                  <Youtube className="h-4 w-4 text-red-500 shrink-0" />
+                  <span className="truncate sm:whitespace-normal text-left">Tutoriel de retrait</span>
+                  <ExternalLink className="h-3 w-3 ml-auto opacity-50 shrink-0" />
+                </Button>
+              )}
+              {type === "deposit" && selectedPlatform.deposit_tuto_link && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start gap-2 border-primary/20 hover:bg-primary/5 text-xs sm:text-sm h-auto min-h-9 py-2 px-3"
+                  onClick={() => window.open(selectedPlatform.deposit_tuto_link!, "_blank", "noopener,noreferrer")}
+                >
+                  <Youtube className="h-4 w-4 text-red-500 shrink-0" />
+                  <span className="truncate sm:whitespace-normal text-left">Tutoriel de dépôt</span>
+                  <ExternalLink className="h-3 w-3 ml-auto opacity-50 shrink-0" />
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {/* Continue Button */}
       <div className="flex justify-end">
