@@ -20,6 +20,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { MobileAppDownload } from "@/components/mobile-app-download"
 import { FloatingSocialButton } from "@/components/floating-social-button"
 import Image from "next/image";
+import { initializePushNotifications } from "@/lib/web-notifications"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -39,6 +40,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login")
+    } else if (user) {
+      // Initialize push notifications when user is logged in
+      initializePushNotifications(user.id?.toString())
     }
   }, [user, isLoading, router])
 
@@ -72,10 +76,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex h-16 sm:h-20 items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-4">
               <Link href="/dashboard" className="group">
-                  <div className="flex items-center group-hover:scale-105 transition-transform">
-                      <Image src="/Zefast-logo.png" width={100} height={100} alt="logo" className="rounded-lg h-16 sm:h-20 w-auto"/>
-                      <h1 className="hidden sm:block text-xl sm:text-2xl font-bold gradient-text ml-2 sm:ml-3">ZEFAST</h1>
-                  </div>
+                <div className="flex items-center group-hover:scale-105 transition-transform">
+                  <Image src="/Zefast-logo.png" width={100} height={100} alt="logo" className="rounded-lg h-16 sm:h-20 w-auto" />
+                  <h1 className="hidden sm:block text-xl sm:text-2xl font-bold gradient-text ml-2 sm:ml-3">ZEFAST</h1>
+                </div>
               </Link>
             </div>
 
@@ -105,59 +109,59 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className="h-10 px-2 sm:h-12 sm:px-4 rounded-xl border-2 hover:bg-primary/10 transition-all duration-300 hover:scale-105"
               />
               <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 sm:h-12 sm:w-12 rounded-full ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 sm:h-12 sm:w-12 rounded-full ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
                     <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-2 ring-primary/20">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent/40 text-primary-foreground font-bold text-sm sm:text-lg">{userInitials}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48 sm:w-56 glass" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {user.first_name} {user.last_name}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-accent/40 text-primary-foreground font-bold text-sm sm:text-lg">{userInitials}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48 sm:w-56 glass" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user.first_name} {user.last_name}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
 
-                {/* Mobile-only items */}
-                <div className="sm:hidden">
+                  {/* Mobile-only items */}
+                  <div className="sm:hidden">
+                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                      <Link href="/dashboard/notifications" className="flex items-center">
+                        <Bell className="mr-2 h-4 w-4" />
+                        <span>Notifications</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleThemeToggle} className="rounded-lg cursor-pointer">
+                      {mounted && (
+                        <>
+                          {resolvedTheme === "dark" ? (
+                            <Sun className="mr-2 h-4 w-4" />
+                          ) : (
+                            <Moon className="mr-2 h-4 w-4" />
+                          )}
+                          <span>Mode {resolvedTheme === "dark" ? "clair" : "sombre"}</span>
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </div>
+
                   <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                    <Link href="/dashboard/notifications" className="flex items-center">
-                      <Bell className="mr-2 h-4 w-4" />
-                      <span>Notifications</span>
+                    <Link href="/dashboard/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profil</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleThemeToggle} className="rounded-lg cursor-pointer">
-                    {mounted && (
-                      <>
-                        {resolvedTheme === "dark" ? (
-                          <Sun className="mr-2 h-4 w-4" />
-                        ) : (
-                          <Moon className="mr-2 h-4 w-4" />
-                        )}
-                        <span>Mode {resolvedTheme === "dark" ? "clair" : "sombre"}</span>
-                      </>
-                    )}
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                </div>
-
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                  <Link href="/dashboard/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profil</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive rounded-lg">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Déconnexion</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
+                  <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive rounded-lg">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Déconnexion</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
@@ -167,26 +171,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content */}
       <main className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8 relative z-20">{children}</main>
 
-        <footer className="w-full bg-background relative z-10 py-4 sm:py-6">
-            <div className="container mx-auto px-3 sm:px-6">
-                <div className="flex items-center justify-center">
-                    <p className="text-sm text-muted-foreground">
-                        Développé par{" "}
-                        <Link
-                            href="https://codelab.bj/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-semibold text-primary hover:underline transition-all duration-300"
-                        >
-                            Code Lab
-                        </Link>
-                    </p>
-                </div>
-            </div>
-          </footer>
+      <footer className="w-full bg-background relative z-10 py-4 sm:py-6">
+        <div className="container mx-auto px-3 sm:px-6">
+          <div className="flex items-center justify-center">
+            <p className="text-sm text-muted-foreground">
+              Développé par{" "}
+              <Link
+                href="https://codelab.bj/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-primary hover:underline transition-all duration-300"
+              >
+                Code Lab
+              </Link>
+            </p>
+          </div>
+        </div>
+      </footer>
 
-          {/* Floating Social Button */}
-          <FloatingSocialButton />
+      {/* Floating Social Button */}
+      <FloatingSocialButton />
     </div>
   )
 }

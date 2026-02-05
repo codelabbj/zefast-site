@@ -22,9 +22,9 @@ export function NetworkStep({ selectedNetwork, onSelect, type }: NetworkStepProp
   useEffect(() => {
     const fetchNetworks = async () => {
       try {
-        const data = await networkApi.getAll()
+        const data = await networkApi.getAll(type)
         // Filter networks based on transaction type
-        const activeNetworks = data.filter(network => 
+        const activeNetworks = data.filter(network =>
           type === TRANSACTION_TYPES.DEPOSIT ? network.active_for_deposit : network.active_for_with
         )
         setNetworks(activeNetworks)
@@ -58,11 +58,10 @@ export function NetworkStep({ selectedNetwork, onSelect, type }: NetworkStepProp
           {networks.map((network) => (
             <Card
               key={network.id}
-              className={`cursor-pointer transition-all hover:shadow-lg ${
-                selectedNetwork?.id === network.id
-                  ? `ring-2 ${type === TRANSACTION_TYPES.DEPOSIT ? "ring-deposit bg-deposit/10" : "ring-withdrawal bg-withdrawal/10"}`
-                  : "hover:bg-muted/50"
-              }`}
+              className={`cursor-pointer transition-all hover:shadow-lg ${selectedNetwork?.id === network.id
+                ? `ring-2 ${type === TRANSACTION_TYPES.DEPOSIT ? "ring-deposit bg-deposit/10" : "ring-withdrawal bg-withdrawal/10"}`
+                : "hover:bg-muted/50"
+                }`}
               onClick={() => onSelect(network)}
             >
               <CardContent className="p-3 sm:p-4">
@@ -94,7 +93,7 @@ export function NetworkStep({ selectedNetwork, onSelect, type }: NetworkStepProp
             </Card>
           ))}
         </div>
-        
+
         {networks.length === 0 && (
           <div className="text-center py-8">
             <p className="text-muted-foreground">

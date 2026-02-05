@@ -5,8 +5,13 @@ import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  className?: string
+}
+
+export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
@@ -21,7 +26,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" className="h-10 w-10 sm:h-12 sm:w-12">
+      <Button variant="ghost" className={cn("h-10 w-10 sm:h-12 sm:w-12", className)}>
         <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
         <span className="sr-only">Toggle theme</span>
       </Button>
@@ -31,7 +36,7 @@ export function ThemeToggle() {
   return (
     <Button
       variant="ghost"
-      className="h-10 w-10 sm:h-12 sm:w-12"
+      className={cn("h-10 w-10 sm:h-12 sm:w-12", className)}
       onClick={handleToggle}
       title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
     >

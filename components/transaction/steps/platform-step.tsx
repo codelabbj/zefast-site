@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SafeImage } from "@/components/ui/safe-image"
-import { Loader2} from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { platformApi } from "@/lib/api-client"
 import type { Platform } from "@/lib/types"
 import { toast } from "react-hot-toast"
@@ -13,16 +13,17 @@ interface PlatformStepProps {
   selectedPlatform: Platform | null
   onSelect: (platform: Platform) => void
   onNext: () => void
+  type: "deposit" | "withdrawal"
 }
 
-export function PlatformStep({ selectedPlatform, onSelect}: PlatformStepProps) {
+export function PlatformStep({ selectedPlatform, onSelect, type }: PlatformStepProps) {
   const [platforms, setPlatforms] = useState<Platform[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchPlatforms = async () => {
       try {
-        const data = await platformApi.getAll()
+        const data = await platformApi.getAll(type)
         // Filter only enabled platforms
         const enabledPlatforms = data.filter(platform => platform.enable)
         setPlatforms(enabledPlatforms)
@@ -56,11 +57,10 @@ export function PlatformStep({ selectedPlatform, onSelect}: PlatformStepProps) {
           {platforms.map((platform) => (
             <Card
               key={platform.id}
-              className={`cursor-pointer transition-all hover:shadow-lg ${
-                selectedPlatform?.id === platform.id
-                  ? "ring-2 ring-primary bg-primary/10"
-                  : "hover:bg-muted/50"
-              }`}
+              className={`cursor-pointer transition-all hover:shadow-lg ${selectedPlatform?.id === platform.id
+                ? "ring-2 ring-primary bg-primary/10"
+                : "hover:bg-muted/50"
+                }`}
               onClick={() => onSelect(platform)}
             >
               <CardContent className="p-3 sm:p-4">
@@ -94,7 +94,7 @@ export function PlatformStep({ selectedPlatform, onSelect}: PlatformStepProps) {
             </Card>
           ))}
         </div>
-        
+
         {platforms.length === 0 && (
           <div className="text-center py-8">
             <p className="text-muted-foreground">Aucune plateforme disponible</p>

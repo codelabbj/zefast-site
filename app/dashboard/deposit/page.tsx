@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
-import {ArrowLeft, Check, CircleCheck, Copy} from "lucide-react"
+import { ArrowLeft, Check, CircleCheck, Copy } from "lucide-react"
 import { TransactionProgressBar } from "@/components/transaction/progress-bar"
 import { StepNavigation } from "@/components/transaction/step-navigation"
 import { ConfirmationDialog } from "@/components/transaction/confirmation-dialog"
@@ -25,17 +25,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {useSettings} from "@/lib/hooks/use-settings";
+import { useSettings } from "@/lib/hooks/use-settings";
 
 export default function DepositPage() {
   const router = useRouter()
   const { user } = useAuth()
-    const {settings} = useSettings()
-  
+  const { settings } = useSettings()
+
   // Step management
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 5
-  
+
   // Form data
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null)
   const [selectedBetId, setSelectedBetId] = useState<UserAppId | null>(null)
@@ -43,15 +43,15 @@ export default function DepositPage() {
   const [selectedPhone, setSelectedPhone] = useState<UserPhone | null>(null)
   const [amount, setAmount] = useState(0)
 
-    const [isMoovUSSDDialogOpen, setIsMoovUSSDDialogOpen] = useState(false)
-    const [moovUSSDCode, setMoovUSSDCode] = useState<string>("")
-    const [isOrangeUSSDDialogOpen, setIsOrangeUSSDDialogOpen] = useState(false)
-    const [orangeUSSDCode, setOrangeUSSDCode] = useState<string>("")
-    const [copiedUSSD, setCopiedUSSD] = useState(false)
+  const [isMoovUSSDDialogOpen, setIsMoovUSSDDialogOpen] = useState(false)
+  const [moovUSSDCode, setMoovUSSDCode] = useState<string>("")
+  const [isOrangeUSSDDialogOpen, setIsOrangeUSSDDialogOpen] = useState(false)
+  const [orangeUSSDCode, setOrangeUSSDCode] = useState<string>("")
+  const [copiedUSSD, setCopiedUSSD] = useState(false)
   // Confirmation dialog
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
+
   // Transaction link modal
   const [transactionLink, setTransactionLink] = useState<string | null>(null)
   const [isTransactionLinkModalOpen, setIsTransactionLinkModalOpen] = useState(false)
@@ -92,73 +92,73 @@ export default function DepositPage() {
         network: selectedNetwork.id,
         source: "web"
       })
-      
+
       toast.success("Dépôt initié avec succès!")
-      
+
       // Check if transaction_link exists in the response
       if (response.transaction_link) {
         setTransactionLink(response.transaction_link)
         setIsTransactionLinkModalOpen(true)
         setIsConfirmationOpen(false)
       } else {
-          // Check if Moov network and API is connected
-          const isMoov = selectedNetwork?.name?.toLowerCase() === "moov"
-          const isMoovConnected = selectedNetwork?.deposit_api === "connect" && isMoov
+        // Check if Moov network and API is connected
+        const isMoov = selectedNetwork?.name?.toLowerCase() === "moov"
+        const isMoovConnected = selectedNetwork?.deposit_api === "connect" && isMoov
 
-          // Check if Orange network and API is connected
-          const isOrange = selectedNetwork?.name?.toLowerCase() === "orange"
-          const isOrangeConnected = selectedNetwork?.deposit_api === "connect" && isOrange
+        // Check if Orange network and API is connected
+        const isOrange = selectedNetwork?.name?.toLowerCase() === "orange"
+        const isOrangeConnected = selectedNetwork?.deposit_api === "connect" && isOrange
 
-          if (isMoovConnected && settings) {
-              // Determine phone number based on country code
-              const isBfCountry = selectedNetwork?.country_code?.toLowerCase() === "bf"
-              const marchandPhone = isBfCountry && settings.bf_moov_marchand_phone
-                  ? settings.bf_moov_marchand_phone
-                  : settings.moov_marchand_phone
+        if (isMoovConnected && settings) {
+          // Determine phone number based on country code
+          const isBfCountry = selectedNetwork?.country_code?.toLowerCase() === "bf"
+          const marchandPhone = isBfCountry && settings.bf_moov_marchand_phone
+            ? settings.bf_moov_marchand_phone
+            : settings.moov_marchand_phone
 
-              // Generate USSD code: *155*2*1*marchand_phone*net_amount# (with 1% fee removed)
-              const fee = Math.ceil(amount * 0.01) // 1% fee
-              const netAmount = amount - fee
-              const ussdCode = `*155*2*1*${marchandPhone}*${netAmount}#`
+          // Generate USSD code: *155*2*1*marchand_phone*net_amount# (with 1% fee removed)
+          const fee = Math.ceil(amount * 0.01) // 1% fee
+          const netAmount = amount - fee
+          const ussdCode = `*155*2*1*${marchandPhone}*${netAmount}#`
 
-              // Always show the USSD dialog
-              setIsMoovUSSDDialogOpen(true)
-              setMoovUSSDCode(ussdCode)
-              setIsConfirmationOpen(false)
+          // Always show the USSD dialog
+          setIsMoovUSSDDialogOpen(true)
+          setMoovUSSDCode(ussdCode)
+          setIsConfirmationOpen(false)
 
-              setTimeout(() => {
-                  window.location.href = `tel:${ussdCode}`
-              }, 500)
+          setTimeout(() => {
+            window.location.href = `tel:${ussdCode}`
+          }, 500)
 
-          } else if (isOrangeConnected && settings) {
-              // For Orange, check payment_by_link - if false, use USSD
-              if (selectedNetwork?.payment_by_link === false) {
-                  // Determine phone number based on country code
-                  const isBfCountry = selectedNetwork?.country_code?.toLowerCase() === "bf"
-                  const marchandPhone = isBfCountry && settings.bf_orange_marchand_phone
-                      ? settings.bf_orange_marchand_phone
-                      : settings.orange_marchand_phone
+        } else if (isOrangeConnected && settings) {
+          // For Orange, check payment_by_link - if false, use USSD
+          if (selectedNetwork?.payment_by_link === false) {
+            // Determine phone number based on country code
+            const isBfCountry = selectedNetwork?.country_code?.toLowerCase() === "bf"
+            const marchandPhone = isBfCountry && settings.bf_orange_marchand_phone
+              ? settings.bf_orange_marchand_phone
+              : settings.orange_marchand_phone
 
-                  // Generate USSD code: *144*2*1*settings.orange_marchand_phone*montant#
-                  const ussdCode = `*144*2*1*${marchandPhone}*${amount}#`
+            // Generate USSD code: *144*2*1*settings.orange_marchand_phone*montant#
+            const ussdCode = `*144*2*1*${marchandPhone}*${amount}#`
 
-                  // Show the Orange USSD dialog
-                  setIsOrangeUSSDDialogOpen(true)
-                  setOrangeUSSDCode(ussdCode)
-                  setIsConfirmationOpen(false)
+            // Show the Orange USSD dialog
+            setIsOrangeUSSDDialogOpen(true)
+            setOrangeUSSDCode(ussdCode)
+            setIsConfirmationOpen(false)
 
-                  setTimeout(() => {
-                      window.location.href = `tel:${ussdCode}`
-                  }, 500)
-              } else {
-                  // If payment_by_link is true, show success (transaction link should have been handled above)
-                  toast.success("Dépôt initié avec succès!")
-                  router.push("/dashboard")
-              }
+            setTimeout(() => {
+              window.location.href = `tel:${ussdCode}`
+            }, 500)
           } else {
-              toast.success("Dépôt initié avec succès!")
-              router.push("/dashboard")
+            // If payment_by_link is true, show success (transaction link should have been handled above)
+            toast.success("Dépôt initié avec succès!")
+            router.push("/dashboard")
           }
+        } else {
+          toast.success("Dépôt initié avec succès!")
+          router.push("/dashboard")
+        }
       }
     } catch (error: any) {
       // Error message is already handled by API interceptor
@@ -190,9 +190,9 @@ export default function DepositPage() {
       case 4:
         return selectedPhone !== null
       case 5:
-        return amount > 0 && selectedPlatform && 
-               amount >= selectedPlatform.minimun_deposit && 
-               amount <= selectedPlatform.max_deposit
+        return amount > 0 && selectedPlatform &&
+          amount >= selectedPlatform.minimun_deposit &&
+          amount <= selectedPlatform.max_deposit
       default:
         return false
     }
@@ -204,11 +204,12 @@ export default function DepositPage() {
         return (
           <PlatformStep
             selectedPlatform={selectedPlatform}
-            onSelect={(platform)=>{
-                setSelectedPlatform(platform)
-                setTimeout(()=>{setCurrentStep(currentStep + 1)}, 1000)
+            onSelect={(platform) => {
+              setSelectedPlatform(platform)
+              setTimeout(() => { setCurrentStep(currentStep + 1) }, 1000)
             }}
             onNext={handleNext}
+            type="deposit"
           />
         )
       case 2:
@@ -216,9 +217,9 @@ export default function DepositPage() {
           <BetIdStep
             selectedPlatform={selectedPlatform}
             selectedBetId={selectedBetId}
-            onSelect={(betId)=>{
-                setSelectedBetId(betId)
-                setTimeout(()=>{setCurrentStep(currentStep + 1)}, 1000)
+            onSelect={(betId) => {
+              setSelectedBetId(betId)
+              setTimeout(() => { setCurrentStep(currentStep + 1) }, 1000)
             }}
             onNext={handleNext}
           />
@@ -227,9 +228,9 @@ export default function DepositPage() {
         return (
           <NetworkStep
             selectedNetwork={selectedNetwork}
-            onSelect={(network)=>{
-                setSelectedNetwork(network)
-                setTimeout(()=>{setCurrentStep(currentStep + 1)}, 1000)
+            onSelect={(network) => {
+              setSelectedNetwork(network)
+              setTimeout(() => { setCurrentStep(currentStep + 1) }, 1000)
             }}
             type="deposit"
           />
@@ -239,20 +240,20 @@ export default function DepositPage() {
           <PhoneStep
             selectedNetwork={selectedNetwork}
             selectedPhone={selectedPhone}
-            onSelect={(phone)=>{
-                setSelectedPhone(phone)
-                setTimeout(()=>{setCurrentStep(currentStep + 1)}, 1000)
+            onSelect={(phone) => {
+              setSelectedPhone(phone)
+              setTimeout(() => { setCurrentStep(currentStep + 1) }, 1000)
             }}
             onNext={handleNext}
           />
         )
       case 5:
-    return (
+        return (
           <AmountStep
             amount={amount}
             setAmount={setAmount}
             withdriwalCode=""
-            setWithdriwalCode={() => {}}
+            setWithdriwalCode={() => { }}
             selectedPlatform={selectedPlatform}
             selectedBetId={selectedBetId}
             selectedNetwork={selectedNetwork}
@@ -285,8 +286,8 @@ export default function DepositPage() {
         </div>
 
         {/* Progress Bar */}
-        <TransactionProgressBar 
-          currentStep={currentStep} 
+        <TransactionProgressBar
+          currentStep={currentStep}
           totalSteps={totalSteps}
           type="deposit"
         />
@@ -342,149 +343,149 @@ export default function DepositPage() {
           </DialogContent>
         </Dialog>
 
-          {/* Moov USSD Code Dialog */}
-          <Dialog open={isMoovUSSDDialogOpen} onOpenChange={setIsMoovUSSDDialogOpen}>
-              <DialogContent className="sm:max-w-md mx-4">
-                  <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                          <CircleCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                          Code USSD Moov
-                      </DialogTitle>
-                      <DialogDescription className="text-sm sm:text-base pt-2">
-                          Vous êtes sur un ordinateur? Veuillez copier ce code et le saisir sur votre téléphone mobile.
-                      </DialogDescription>
-                  </DialogHeader>
+        {/* Moov USSD Code Dialog */}
+        <Dialog open={isMoovUSSDDialogOpen} onOpenChange={setIsMoovUSSDDialogOpen}>
+          <DialogContent className="sm:max-w-md mx-4">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <CircleCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                Code USSD Moov
+              </DialogTitle>
+              <DialogDescription className="text-sm sm:text-base pt-2">
+                Vous êtes sur un ordinateur? Veuillez copier ce code et le saisir sur votre téléphone mobile.
+              </DialogDescription>
+            </DialogHeader>
 
-                  <div className="space-y-3 sm:space-y-4">
-                      <div className="relative">
-                          <div className="bg-muted/50 p-3 sm:p-4 rounded-lg border-2 border-primary/30">
-                              <code className="text-sm font-mono text-center break-all text-foreground leading-relaxed">
-                                  {moovUSSDCode}
-                              </code>
-                          </div>
-                          <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                  navigator.clipboard.writeText(moovUSSDCode)
-                                  setCopiedUSSD(true)
-                                  setTimeout(() => setCopiedUSSD(false), 2000)
-                                  toast.success("Code copié!")
-                              }}
-                              className="absolute right-2 top-2 gap-1 sm:gap-2 h-9 w-9 sm:h-10 sm:w-10 p-0"
-                          >
-                              {copiedUSSD ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Copy className="h-3 w-3 sm:h-4 sm:w-4" />}
-                          </Button>
-                      </div>
-                      <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
-                          <div className="space-y-2">
-                              <p className="text-xs sm:text-sm text-foreground">
-                                  <span className="font-semibold">Instructions:</span>
-                              </p>
-                              <ol className="text-xs sm:text-sm text-foreground list-decimal list-inside space-y-1 ml-4">
-                                  <li>Copiez et composez le code USSD ci-dessus</li>
-                                  <li>Confirmez la transaction</li>
-                              </ol>
-                          </div>
-                      </div>
-                  </div>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="relative">
+                <div className="bg-muted/50 p-3 sm:p-4 rounded-lg border-2 border-primary/30">
+                  <code className="text-sm font-mono text-center break-all text-foreground leading-relaxed">
+                    {moovUSSDCode}
+                  </code>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(moovUSSDCode)
+                    setCopiedUSSD(true)
+                    setTimeout(() => setCopiedUSSD(false), 2000)
+                    toast.success("Code copié!")
+                  }}
+                  className="absolute right-2 top-2 gap-1 sm:gap-2 h-9 w-9 sm:h-10 sm:w-10 p-0"
+                >
+                  {copiedUSSD ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Copy className="h-3 w-3 sm:h-4 sm:w-4" />}
+                </Button>
+              </div>
+              <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
+                <div className="space-y-2">
+                  <p className="text-xs sm:text-sm text-foreground">
+                    <span className="font-semibold">Instructions:</span>
+                  </p>
+                  <ol className="text-xs sm:text-sm text-foreground list-decimal list-inside space-y-1 ml-4">
+                    <li>Copiez et composez le code USSD ci-dessus</li>
+                    <li>Confirmez la transaction</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
 
-                  <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
-                      <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                              setIsMoovUSSDDialogOpen(false)
-                              router.push("/dashboard")
-                          }}
-                          className="w-full sm:w-auto h-10 sm:h-11"
-                      >
-                          Fermer
-                      </Button>
-                      <Button
-                          type="button"
-                          onClick={() => {
-                              setIsMoovUSSDDialogOpen(false)
-                              toast.success("Dépôt initié avec succès!")
-                              router.push("/dashboard")
-                          }}
-                          className="w-full sm:w-auto h-10 sm:h-11"
-                      >
-                          Confirmer
-                      </Button>
-                  </DialogFooter>
-              </DialogContent>
-          </Dialog>
+            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsMoovUSSDDialogOpen(false)
+                  router.push("/dashboard")
+                }}
+                className="w-full sm:w-auto h-10 sm:h-11"
+              >
+                Fermer
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setIsMoovUSSDDialogOpen(false)
+                  toast.success("Dépôt initié avec succès!")
+                  router.push("/dashboard")
+                }}
+                className="w-full sm:w-auto h-10 sm:h-11"
+              >
+                Confirmer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-          {/* Orange USSD Code Dialog */}
-          <Dialog open={isOrangeUSSDDialogOpen} onOpenChange={setIsOrangeUSSDDialogOpen}>
-              <DialogContent className="sm:max-w-md mx-4">
-                  <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                          <CircleCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                          Code USSD Orange
-                      </DialogTitle>
-                      <DialogDescription className="text-sm sm:text-base pt-2">
-                          Vous êtes sur un ordinateur? Veuillez copier ce code et le saisir sur votre téléphone mobile.
-                      </DialogDescription>
-                  </DialogHeader>
+        {/* Orange USSD Code Dialog */}
+        <Dialog open={isOrangeUSSDDialogOpen} onOpenChange={setIsOrangeUSSDDialogOpen}>
+          <DialogContent className="sm:max-w-md mx-4">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <CircleCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                Code USSD Orange
+              </DialogTitle>
+              <DialogDescription className="text-sm sm:text-base pt-2">
+                Vous êtes sur un ordinateur? Veuillez copier ce code et le saisir sur votre téléphone mobile.
+              </DialogDescription>
+            </DialogHeader>
 
-                  <div className="space-y-3 sm:space-y-4">
-                      <div className="relative">
-                          <div className="bg-muted/50 p-3 sm:p-4 rounded-lg border-2 border-primary/30">
-                              <code className="text-sm font-mono text-center break-all text-foreground leading-relaxed">
-                                  {orangeUSSDCode}
-                              </code>
-                          </div>
-                          <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                  navigator.clipboard.writeText(orangeUSSDCode)
-                                  setCopiedUSSD(true)
-                                  setTimeout(() => setCopiedUSSD(false), 2000)
-                                  toast.success("Code copié!")
-                              }}
-                              className="absolute right-2 top-2 gap-1 sm:gap-2 h-9 w-9 sm:h-10 sm:w-10 p-0"
-                          >
-                              {copiedUSSD ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Copy className="h-3 w-3 sm:h-4 sm:w-4" />}
-                          </Button>
-                      </div>
-                      <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
-                          <p className="text-xs sm:text-sm text-foreground">
-                              <span className="font-semibold">Instructions:</span> Copiez le code ci-dessus, puis tapez-le sur votre téléphone mobile pour effectuer la transaction.
-                          </p>
-                      </div>
-                  </div>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="relative">
+                <div className="bg-muted/50 p-3 sm:p-4 rounded-lg border-2 border-primary/30">
+                  <code className="text-sm font-mono text-center break-all text-foreground leading-relaxed">
+                    {orangeUSSDCode}
+                  </code>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(orangeUSSDCode)
+                    setCopiedUSSD(true)
+                    setTimeout(() => setCopiedUSSD(false), 2000)
+                    toast.success("Code copié!")
+                  }}
+                  className="absolute right-2 top-2 gap-1 sm:gap-2 h-9 w-9 sm:h-10 sm:w-10 p-0"
+                >
+                  {copiedUSSD ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Copy className="h-3 w-3 sm:h-4 sm:w-4" />}
+                </Button>
+              </div>
+              <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
+                <p className="text-xs sm:text-sm text-foreground">
+                  <span className="font-semibold">Instructions:</span> Copiez le code ci-dessus, puis tapez-le sur votre téléphone mobile pour effectuer la transaction.
+                </p>
+              </div>
+            </div>
 
-                  <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
-                      <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                              setIsOrangeUSSDDialogOpen(false)
-                              router.push("/dashboard")
-                          }}
-                          className="w-full sm:w-auto h-10 sm:h-11"
-                      >
-                          Fermer
-                      </Button>
-                      <Button
-                          type="button"
-                          onClick={() => {
-                              setIsOrangeUSSDDialogOpen(false)
-                              toast.success("Dépôt initié avec succès!")
-                              router.push("/dashboard")
-                          }}
-                          className="w-full sm:w-auto h-10 sm:h-11"
-                      >
-                          Confirmer
-                      </Button>
-                  </DialogFooter>
-              </DialogContent>
-          </Dialog>
+            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsOrangeUSSDDialogOpen(false)
+                  router.push("/dashboard")
+                }}
+                className="w-full sm:w-auto h-10 sm:h-11"
+              >
+                Fermer
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setIsOrangeUSSDDialogOpen(false)
+                  toast.success("Dépôt initié avec succès!")
+                  router.push("/dashboard")
+                }}
+                className="w-full sm:w-auto h-10 sm:h-11"
+              >
+                Confirmer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
 
       </div>

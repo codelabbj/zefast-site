@@ -21,11 +21,11 @@ import { normalizePhoneNumber } from "@/lib/utils"
 export default function WithdrawalPage() {
   const router = useRouter()
   const { user } = useAuth()
-  
+
   // Step management
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 5
-  
+
   // Form data
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null)
   const [selectedBetId, setSelectedBetId] = useState<UserAppId | null>(null)
@@ -33,7 +33,7 @@ export default function WithdrawalPage() {
   const [selectedPhone, setSelectedPhone] = useState<UserPhone | null>(null)
   const [amount, setAmount] = useState(0)
   const [withdriwalCode, setWithdriwalCode] = useState("")
-  
+
   // Confirmation dialog
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -75,7 +75,7 @@ export default function WithdrawalPage() {
         withdriwal_code: withdriwalCode,
         source: "web"
       })
-      
+
       toast.success("Retrait initié avec succès!")
       router.push("/dashboard")
     } catch (error: any) {
@@ -100,10 +100,10 @@ export default function WithdrawalPage() {
       case 4:
         return selectedPhone !== null
       case 5:
-        return amount > 0 && selectedPlatform && 
-               withdriwalCode.length >= 4 &&
-               amount >= selectedPlatform.minimun_with && 
-               amount <= selectedPlatform.max_win
+        return amount > 0 && selectedPlatform &&
+          withdriwalCode.length >= 4 &&
+          amount >= selectedPlatform.minimun_with &&
+          amount <= selectedPlatform.max_win
       default:
         return false
     }
@@ -116,10 +116,11 @@ export default function WithdrawalPage() {
           <PlatformStep
             selectedPlatform={selectedPlatform}
             onSelect={(platform) => {
-                setSelectedPlatform(platform)
-                setTimeout(()=>{setCurrentStep(currentStep + 1)}, 1000)
+              setSelectedPlatform(platform)
+              setTimeout(() => { setCurrentStep(currentStep + 1) }, 1000)
             }}
             onNext={handleNext}
+            type="withdrawal"
           />
         )
       case 2:
@@ -127,9 +128,9 @@ export default function WithdrawalPage() {
           <BetIdStep
             selectedPlatform={selectedPlatform}
             selectedBetId={selectedBetId}
-            onSelect={(betId)=>{
-                setSelectedBetId(betId)
-                setTimeout(()=>{setCurrentStep(currentStep + 1)}, 1000)
+            onSelect={(betId) => {
+              setSelectedBetId(betId)
+              setTimeout(() => { setCurrentStep(currentStep + 1) }, 1000)
             }}
             onNext={handleNext}
           />
@@ -138,9 +139,9 @@ export default function WithdrawalPage() {
         return (
           <NetworkStep
             selectedNetwork={selectedNetwork}
-            onSelect={(network)=>{
-                setSelectedNetwork(network)
-                setTimeout(()=>{setCurrentStep(currentStep + 1)}, 1000)
+            onSelect={(network) => {
+              setSelectedNetwork(network)
+              setTimeout(() => { setCurrentStep(currentStep + 1) }, 1000)
             }}
             type="withdrawal"
           />
@@ -151,14 +152,14 @@ export default function WithdrawalPage() {
             selectedNetwork={selectedNetwork}
             selectedPhone={selectedPhone}
             onSelect={(phone) => {
-                setSelectedPhone(phone)
-                setTimeout(()=>{setCurrentStep(currentStep + 1)}, 1000)
+              setSelectedPhone(phone)
+              setTimeout(() => { setCurrentStep(currentStep + 1) }, 1000)
             }}
             onNext={handleNext}
           />
         )
       case 5:
-    return (
+        return (
           <AmountStep
             amount={amount}
             setAmount={setAmount}
@@ -196,8 +197,8 @@ export default function WithdrawalPage() {
         </div>
 
         {/* Progress Bar */}
-        <TransactionProgressBar 
-          currentStep={currentStep} 
+        <TransactionProgressBar
+          currentStep={currentStep}
           totalSteps={totalSteps}
           type="withdrawal"
         />
