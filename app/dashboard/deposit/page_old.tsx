@@ -17,11 +17,6 @@ import { transactionApi } from "@/lib/api-client"
 import type { Platform, UserAppId, Network, UserPhone } from "@/lib/types"
 import { toast } from "react-hot-toast"
 import { normalizePhoneNumber } from "@/lib/utils"
-
-// import for didier (last transaction and transaction summary dialog)
-import { TransactionSummaryDialog } from "@/components/transaction/transaction-summary-dialog"
-import type { Transaction } from "@/lib/types"
-
 import {
   Dialog,
   DialogContent,
@@ -40,10 +35,6 @@ export default function DepositPage() {
   // Step management
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 5
-
-  // Après vos states existants, ajoutez :
-  const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null)
-  const [isTransactionSummaryOpen, setIsTransactionSummaryOpen] = useState(false)
 
   // Form data
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null)
@@ -85,7 +76,7 @@ export default function DepositPage() {
     }
   }
 
-  /*const handleConfirmTransaction = async () => {
+  const handleConfirmTransaction = async () => {
     if (!selectedPlatform || !selectedBetId || !selectedNetwork || !selectedPhone) {
       toast.error("Données manquantes pour la transaction")
       return
@@ -178,97 +169,7 @@ export default function DepositPage() {
     } finally {
       setIsSubmitting(false)
     }
-  }*/
-
-    const handleConfirmTransaction = async () => {
-  if (!selectedPlatform || !selectedBetId || !selectedNetwork || !selectedPhone) {
-    toast.error("Données manquantes pour la transaction")
-    return
   }
-
-  setIsSubmitting(true)
-  try {
-    const response = await transactionApi.createDeposit({
-      amount,
-      phone_number: normalizePhoneNumber(selectedPhone.phone),
-      app: selectedPlatform.id,
-      user_app_id: selectedBetId.user_app_id,
-      network: selectedNetwork.id,
-      source: "web"
-    })
-
-    // Fermer la confirmation dialog
-    setIsConfirmationOpen(false)
-
-    // Récupérer la dernière transaction
-    try {
-      const lastTrans = await transactionApi.getLastTransaction()
-      setLastTransaction(lastTrans)
-      setIsTransactionSummaryOpen(true)
-    } catch (error) {
-      console.error("Erreur lors de la récupération de la dernière transaction:", error)
-      
-      // Continuer le flux normal même si on ne peut pas récupérer la transaction
-      if (response.transaction_link) {
-        setTransactionLink(response.transaction_link)
-        setIsTransactionLinkModalOpen(true)
-      } else {
-        // Check if Moov network and API is connected
-        const isMoov = selectedNetwork?.name?.toLowerCase() === "moov"
-        const isMoovConnected = selectedNetwork?.deposit_api === "connect" && isMoov
-
-        // Check if Orange network and API is connected
-        const isOrange = selectedNetwork?.name?.toLowerCase() === "orange"
-        const isOrangeConnected = selectedNetwork?.deposit_api === "connect" && isOrange
-
-        if (isMoovConnected && settings) {
-          const isBfCountry = selectedNetwork?.country_code?.toLowerCase() === "bf"
-          const marchandPhone = isBfCountry && settings.bf_moov_marchand_phone
-            ? settings.bf_moov_marchand_phone
-            : settings.moov_marchand_phone
-
-          const fee = Math.ceil(amount * 0.01)
-          const netAmount = amount - fee
-          const ussdCode = `*155*2*1*${marchandPhone}*${netAmount}#`
-
-          setIsMoovUSSDDialogOpen(true)
-          setMoovUSSDCode(ussdCode)
-
-          setTimeout(() => {
-            window.location.href = `tel:${ussdCode}`
-          }, 500)
-
-        } else if (isOrangeConnected && settings) {
-          if (selectedNetwork?.payment_by_link === false) {
-            const isBfCountry = selectedNetwork?.country_code?.toLowerCase() === "bf"
-            const marchandPhone = isBfCountry && settings.bf_orange_marchand_phone
-              ? settings.bf_orange_marchand_phone
-              : settings.orange_marchand_phone
-
-            const ussdCode = `*144*2*1*${marchandPhone}*${amount}#`
-
-            setIsOrangeUSSDDialogOpen(true)
-            setOrangeUSSDCode(ussdCode)
-
-            setTimeout(() => {
-              window.location.href = `tel:${ussdCode}`
-            }, 500)
-          } else {
-            toast.success("Dépôt initié avec succès!")
-            router.push("/dashboard")
-          }
-        } else {
-          toast.success("Dépôt initié avec succès!")
-          router.push("/dashboard")
-        }
-      }
-    }
-  } catch (error: any) {
-    // Error already handled by interceptor
-  } finally {
-    setIsSubmitting(false)
-  }
-}
 
   const handleContinueTransaction = () => {
     if (transactionLink) {
@@ -277,79 +178,6 @@ export default function DepositPage() {
       router.push("/dashboard")
     }
   }
-
-  // Ajoutez ces deux fonctions après handleConfirmTransaction
-
-const handleCancelTransaction = async (reference: string) => {
-  await transactionApi.cancelTransaction(reference)
-  setTimeout(() => {
-    router.push("/dashboard")
-  }, 1000)
-}
-
-const handleFinalizeTransaction = async (reference: string) => {
-  try {
-    const finalizedTransaction = await transactionApi.finalizeTransaction(reference)
-    
-    console.log("Transaction finalisée:", finalizedTransaction)
-    
-    setIsTransactionSummaryOpen(false)
-    
-    if (finalizedTransaction.transaction_link) {
-      setTransactionLink(finalizedTransaction.transaction_link)
-      setIsTransactionLinkModalOpen(true)
-    } else {
-      const isMoov = selectedNetwork?.name?.toLowerCase() === "moov"
-      const isMoovConnected = selectedNetwork?.deposit_api === "connect" && isMoov
-
-      const isOrange = selectedNetwork?.name?.toLowerCase() === "orange"
-      const isOrangeConnected = selectedNetwork?.deposit_api === "connect" && isOrange
-
-      if (isMoovConnected && settings) {
-        const isBfCountry = selectedNetwork?.country_code?.toLowerCase() === "bf"
-        const marchandPhone = isBfCountry && settings.bf_moov_marchand_phone
-          ? settings.bf_moov_marchand_phone
-          : settings.moov_marchand_phone
-
-        const fee = Math.ceil(amount * 0.01)
-        const netAmount = amount - fee
-        const ussdCode = `*155*2*1*${marchandPhone}*${netAmount}#`
-
-        setIsMoovUSSDDialogOpen(true)
-        setMoovUSSDCode(ussdCode)
-
-        setTimeout(() => {
-          window.location.href = `tel:${ussdCode}`
-        }, 500)
-
-      } else if (isOrangeConnected && settings) {
-        if (selectedNetwork?.payment_by_link === false) {
-          const isBfCountry = selectedNetwork?.country_code?.toLowerCase() === "bf"
-          const marchandPhone = isBfCountry && settings.bf_orange_marchand_phone
-            ? settings.bf_orange_marchand_phone
-            : settings.orange_marchand_phone
-
-          const ussdCode = `*144*2*1*${marchandPhone}*${amount}#`
-
-          setIsOrangeUSSDDialogOpen(true)
-          setOrangeUSSDCode(ussdCode)
-
-          setTimeout(() => {
-            window.location.href = `tel:${ussdCode}`
-          }, 500)
-        } else {
-          toast.success("Dépôt initié avec succès!")
-          router.push("/dashboard")
-        }
-      } else {
-        toast.success("Dépôt initié avec succès!")
-        router.push("/dashboard")
-      }
-    }
-  } catch (error) {
-    throw error
-  }
-}
 
   const isStepValid = () => {
     switch (currentStep) {
@@ -659,17 +487,6 @@ const handleFinalizeTransaction = async (reference: string) => {
           </DialogContent>
         </Dialog>
 
-        {/* Transaction Summary Dialog */}
-        <TransactionSummaryDialog
-          isOpen={isTransactionSummaryOpen}
-          onClose={() => {
-            setIsTransactionSummaryOpen(false)
-          }}
-          transaction={lastTransaction}
-          onCancel={handleCancelTransaction}
-          onFinalize={handleFinalizeTransaction}
-          isLoading={isSubmitting}
-        />
 
       </div>
     </div>
