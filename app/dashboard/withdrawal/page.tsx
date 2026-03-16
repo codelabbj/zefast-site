@@ -17,6 +17,9 @@ import { transactionApi } from "@/lib/api-client"
 import type { Platform, UserAppId, Network, UserPhone } from "@/lib/types"
 import { toast } from "react-hot-toast"
 import { normalizePhoneNumber } from "@/lib/utils"
+import { useEffect } from "react"
+import { TransactionSummaryDialog } from "@/components/transaction/transaction-summary-dialog"
+import type { Transaction } from "@/lib/types"
 
 export default function WithdrawalPage() {
   const router = useRouter()
@@ -25,6 +28,25 @@ export default function WithdrawalPage() {
   // Step management
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 5
+
+  const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null)
+  const [isTransactionSummaryOpen, setIsTransactionSummaryOpen] = useState(false)
+
+  // Fetch last transaction on mount
+  useEffect(() => {
+    const fetchLastTransaction = async () => {
+      try {
+        const lastTrans = await transactionApi.getLastTransaction()
+        if (lastTrans && lastTrans.status === "pending") {
+          setLastTransaction(lastTrans)
+          setIsTransactionSummaryOpen(true)
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération de la dernière transaction:", error)
+      }
+    }
+    fetchLastTransaction()
+  }, [])
 
   // Form data
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null)
@@ -58,6 +80,16 @@ export default function WithdrawalPage() {
     }
   }
 
+  const handleTransactionFlow = (transaction: Transaction) => {
+    // For withdrawals, usually no transaction link or USSD, but we follow the same pattern
+    if (transaction.transaction_link) {
+      window.open(transaction.transaction_link, "_blank", "noopener,noreferrer")
+      router.push("/dashboard")
+    } else {
+      router.push("/dashboard")
+    }
+  }
+
   const handleConfirmTransaction = async () => {
     if (!selectedPlatform || !selectedBetId || !selectedNetwork || !selectedPhone) {
       toast.error("Données manquantes pour la transaction")
@@ -66,7 +98,7 @@ export default function WithdrawalPage() {
 
     setIsSubmitting(true)
     try {
-      await transactionApi.createWithdrawal({
+      const response = await transactionApi.createWithdrawal({
         amount,
         phone_number: normalizePhoneNumber(selectedPhone.phone),
         app: selectedPlatform.id,
@@ -76,16 +108,29 @@ export default function WithdrawalPage() {
         source: "web"
       })
 
-      toast.success("Retrait initié avec succès!")
-      router.push("/dashboard")
+      setIsConfirmationOpen(false)
+
+      handleTransactionFlow(response)
     } catch (error: any) {
-      // Error message is already handled by API interceptor
-      // Only show additional toast if it's not the rate limiting error
-      if (!error?.response?.data?.error_time_message) {
-        // Generic error toast is already shown by interceptor, but we can add context if needed
-      }
+      // Error already handled by interceptor
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleCancelTransaction = async (reference: string) => {
+    await transactionApi.cancelTransaction(reference)
+    setLastTransaction(null)
+    setIsTransactionSummaryOpen(false)
+  }
+
+  const handleFinalizeTransaction = async (reference: string) => {
+    try {
+      const finalizedTransaction = await transactionApi.finalizeTransaction(reference)
+      setIsTransactionSummaryOpen(false)
+      handleTransactionFlow(finalizedTransaction)
+    } catch (error) {
+      throw error
     }
   }
 
@@ -235,6 +280,16 @@ export default function WithdrawalPage() {
           type="withdrawal"
           platformName={selectedPlatform?.name || ""}
           networkName={selectedNetwork?.public_name || ""}
+          isLoading={isSubmitting}
+        />
+
+        {/* Transaction Summary Dialog */}
+        <TransactionSummaryDialog
+          isOpen={isTransactionSummaryOpen}
+          onClose={() => setIsTransactionSummaryOpen(false)}
+          transaction={lastTransaction}
+          onCancel={handleCancelTransaction}
+          onFinalize={handleFinalizeTransaction}
           isLoading={isSubmitting}
         />
       </div>
